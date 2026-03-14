@@ -153,7 +153,71 @@ async function main() {
     });
   }
 
-  console.log("Seed complete: 2 users, 3 cubs, 12 traits, 25 trait definitions, 15 user traits");
+  // Phase 3: Crate Definitions
+  const crateDefinitions = [
+    { name: "Common Crate", rarity: "COMMON" as const, description: "A basic crate with common loot", imageUrl: "https://placehold.co/400x400/6b7280/fff?text=Common+Crate" },
+    { name: "Rare Crate", rarity: "RARE" as const, description: "A shimmering crate with better odds", imageUrl: "https://placehold.co/400x400/3b82f6/fff?text=Rare+Crate" },
+    { name: "Epic Crate", rarity: "EPIC" as const, description: "A glowing crate with epic potential", imageUrl: "https://placehold.co/400x400/9333ea/fff?text=Epic+Crate" },
+    { name: "Legendary Crate", rarity: "LEGENDARY" as const, description: "An ancient crate of immense power", imageUrl: "https://placehold.co/400x400/f59e0b/fff?text=Legendary+Crate" },
+  ];
+
+  for (const def of crateDefinitions) {
+    await prisma.crateDefinition.upsert({
+      where: { name: def.name },
+      update: { rarity: def.rarity, description: def.description, imageUrl: def.imageUrl },
+      create: def,
+    });
+  }
+
+  // Loot table entries
+  const allCrateDefs = await prisma.crateDefinition.findMany();
+  const lootConfig: Record<string, Record<string, number>> = {
+    "Common Crate": { COMMON: 0.60, UNCOMMON: 0.25, RARE: 0.10, EPIC: 0.04, LEGENDARY: 0.01 },
+    "Rare Crate": { COMMON: 0.30, UNCOMMON: 0.35, RARE: 0.20, EPIC: 0.10, LEGENDARY: 0.05 },
+    "Epic Crate": { COMMON: 0.10, UNCOMMON: 0.20, RARE: 0.30, EPIC: 0.25, LEGENDARY: 0.15 },
+    "Legendary Crate": { COMMON: 0.05, UNCOMMON: 0.10, RARE: 0.20, EPIC: 0.30, LEGENDARY: 0.35 },
+  };
+
+  for (const crateDef of allCrateDefs) {
+    const config = lootConfig[crateDef.name];
+    if (!config) continue;
+    for (const [rarity, probability] of Object.entries(config)) {
+      await prisma.lootTableEntry.upsert({
+        where: {
+          crateDefinitionId_traitRarity: {
+            crateDefinitionId: crateDef.id,
+            traitRarity: rarity as "COMMON" | "UNCOMMON" | "RARE" | "EPIC" | "LEGENDARY",
+          },
+        },
+        update: { probability },
+        create: {
+          crateDefinitionId: crateDef.id,
+          traitRarity: rarity as "COMMON" | "UNCOMMON" | "RARE" | "EPIC" | "LEGENDARY",
+          probability,
+        },
+      });
+    }
+  }
+
+  // Give test user some crates
+  for (const crateDef of allCrateDefs) {
+    await prisma.userCrate.upsert({
+      where: {
+        walletAddress_crateDefinitionId: {
+          walletAddress: testWallet,
+          crateDefinitionId: crateDef.id,
+        },
+      },
+      update: { quantity: 5 },
+      create: {
+        walletAddress: testWallet,
+        crateDefinitionId: crateDef.id,
+        quantity: 5,
+      },
+    });
+  }
+
+  console.log("Seed complete: 2 users, 3 cubs, 12 traits, 25 trait definitions, 15 user traits, 4 crate definitions, 20 loot entries, 4 user crates");
 }
 
 main()

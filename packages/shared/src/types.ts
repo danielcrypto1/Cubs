@@ -115,3 +115,39 @@ export interface EditorSaveResult {
   imageUrl: string;
   metadataUri: string;
 }
+
+// Phase 3: Crate System & Loot Engine
+
+export interface CrateDefinition {
+  id: string;
+  name: string;
+  rarity: TraitRarity;
+  description: string | null;
+  imageUrl: string;
+  createdAt: string;
+}
+
+export interface UserCrate {
+  id: string;
+  walletAddress: string;
+  crateDefinitionId: string;
+  quantity: number;
+  acquiredAt: string;
+  crateDefinition?: CrateDefinition;
+}
+
+export interface LootTableEntry {
+  id: string;
+  crateDefinitionId: string;
+  traitRarity: TraitRarity;
+  probability: number;
+}
+
+export interface CrateOpenResult {
+  success: boolean;
+  reward: {
+    traitDefinition: TraitDefinition;
+    rarity: TraitRarity;
+  };
+  remainingCrates: number;
+}
