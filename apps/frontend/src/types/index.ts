@@ -1,1 +1,16 @@
-export type { User, Cub, Trait, MarketplaceListing, StakingPosition, AuthSession } from "@cubs/shared";
+export type {
+  User,
+  Cub,
+  Trait,
+  MarketplaceListing,
+  StakingPosition,
+  AuthSession,
+  TraitCategory,
+  TraitRarity,
+  TraitAcquisition,
+  TraitDefinition,
+  UserTrait,
+  EditorLayerConfig,
+  EditorCubState,
+  EditorSaveResult,
+} from "@cubs/shared";

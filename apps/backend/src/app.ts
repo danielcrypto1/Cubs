@@ -7,6 +7,9 @@ import userRoutes from "./routes/users/index.js";
 import cubRoutes from "./routes/cubs/index.js";
 import traitRoutes from "./routes/traits/index.js";
 import marketplaceRoutes from "./routes/marketplace/index.js";
+import traitRegistryRoutes from "./routes/trait-registry/index.js";
+import userTraitRoutes from "./routes/user-traits/index.js";
+import editorRoutes from "./routes/editor/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -29,6 +32,9 @@ export async function buildApp() {
   await fastify.register(cubRoutes, { prefix: "/api/cubs" });
   await fastify.register(traitRoutes, { prefix: "/api/traits" });
   await fastify.register(marketplaceRoutes, { prefix: "/api/marketplace" });
+  await fastify.register(traitRegistryRoutes, { prefix: "/api/trait-registry" });
+  await fastify.register(userTraitRoutes, { prefix: "/api/user-traits" });
+  await fastify.register(editorRoutes, { prefix: "/api/editor" });
 
   // Health check
   fastify.get("/api/health", async () => ({ status: "ok" }));
