@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  CANCELLED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique @map("wallet_address")
+  role          Role     @default(USER)
+  displayName   String?  @map("display_name")
+  avatarUrl     String?  @map("avatar_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  cubs             Cub[]
+  listings         MarketplaceListing[] @relation("SellerListings")
+  purchases        MarketplaceListing[] @relation("BuyerListings")
+  stakingPositions StakingPosition[]
+
+  @@map("users")
+}
+
+model Cub {
+  id          String   @id @default(cuid())
+  tokenId     Int      @unique @map("token_id")
+  name        String?
+  description String?
+  imageUrl    String?  @map("image_url")
+  metadataUri String?  @map("metadata_uri")
+  ownerId     String   @map("owner_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner    User                 @relation(fields: [ownerId], references: [id])
+  traits   Trait[]
+  listings MarketplaceListing[]
+  staking  StakingPosition?
+
+  @@map("cubs")
+}
+
+model Trait {
+  id           String @id @default(cuid())
+  cubId        String @map("cub_id")
+  traitType    String @map("trait_type")
+  traitValue   String @map("trait_value")
+  displayOrder Int    @default(0) @map("display_order")
+
+  cub Cub @relation(fields: [cubId], references: [id], onDelete: Cascade)
+
+  @@unique([cubId, traitType])
+  @@map("traits")
+}
+
+model MarketplaceListing {
+  id          String        @id @default(cuid())
+  cubId       String        @map("cub_id")
+  sellerId    String        @map("seller_id")
+  buyerId     String?       @map("buyer_id")
+  priceWei    String        @map("price_wei")
+  status      ListingStatus @default(ACTIVE)
+  txHash      String?       @map("tx_hash")
+  listedAt    DateTime      @default(now()) @map("listed_at")
+  soldAt      DateTime?     @map("sold_at")
+  cancelledAt DateTime?     @map("cancelled_at")
+
+  cub    Cub   @relation(fields: [cubId], references: [id])
+  seller User  @relation("SellerListings", fields: [sellerId], references: [id])
+  buyer  User? @relation("BuyerListings", fields: [buyerId], references: [id])
+
+  @@map("marketplace_listings")
+}
+
+model StakingPosition {
+  id             String    @id @default(cuid())
+  cubId          String    @unique @map("cub_id")
+  userId         String    @map("user_id")
+  stakedAt       DateTime  @default(now()) @map("staked_at")
+  unstakedAt     DateTime? @map("unstaked_at")
+  rewardsClaimed String    @default("0") @map("rewards_claimed")
+  txHash         String?   @map("tx_hash")
+  isActive       Boolean   @default(true) @map("is_active")
+
+  cub  Cub  @relation(fields: [cubId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("staking_positions")
+}

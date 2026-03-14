@@ -1,0 +1,19 @@
+{
+  "name": "cubs-platform",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "db:generate": "pnpm --filter @cubs/backend prisma generate",
+    "db:migrate": "pnpm --filter @cubs/backend prisma migrate dev",
+    "db:seed": "pnpm --filter @cubs/backend prisma db seed",
+    "db:studio": "pnpm --filter @cubs/backend prisma studio",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
+  }
+}
