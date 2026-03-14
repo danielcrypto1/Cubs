@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/start-frontend.cjs"],
+      "port": 3000
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/start-backend.cjs"],
+      "port": 3001
+    }
+  ]
+}
