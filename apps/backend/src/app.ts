@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import corsPlugin from "./plugins/cors.js";
 import sessionPlugin from "./plugins/session.js";
 import prismaPlugin from "./plugins/prisma.js";
+import { connectRedis, redis } from "./lib/redis.js";
 import authRoutes from "./routes/auth/index.js";
 import userRoutes from "./routes/users/index.js";
 import cubRoutes from "./routes/cubs/index.js";
@@ -40,6 +41,12 @@ export async function buildApp() {
 
   // Health check
   fastify.get("/api/health", async () => ({ status: "ok" }));
+
+  // Redis connection (non-blocking — caching degrades gracefully)
+  connectRedis().catch(() => {});
+  fastify.addHook("onClose", async () => {
+    await redis.quit().catch(() => {});
+  });
 
   return fastify;
 }

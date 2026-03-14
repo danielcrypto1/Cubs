@@ -45,6 +45,12 @@ enum TraitAcquisition {
   REWARD
 }
 
+enum AssetType {
+  CUB
+  TRAIT
+  CRATE
+}
+
 model User {
   id            String   @id @default(cuid())
   walletAddress String   @unique @map("wallet_address")
@@ -95,22 +101,46 @@ model Trait {
 }
 
 model MarketplaceListing {
-  id          String        @id @default(cuid())
-  cubId       String        @map("cub_id")
-  sellerId    String        @map("seller_id")
-  buyerId     String?       @map("buyer_id")
-  priceWei    String        @map("price_wei")
-  status      ListingStatus @default(ACTIVE)
-  txHash      String?       @map("tx_hash")
-  listedAt    DateTime      @default(now()) @map("listed_at")
-  soldAt      DateTime?     @map("sold_at")
-  cancelledAt DateTime?     @map("cancelled_at")
+  id                String        @id @default(cuid())
+  assetType         AssetType     @map("asset_type")
+  cubId             String?       @map("cub_id")
+  traitDefinitionId String?       @map("trait_definition_id")
+  crateDefinitionId String?       @map("crate_definition_id")
+  quantity          Int           @default(1)
+  sellerId          String        @map("seller_id")
+  buyerId           String?       @map("buyer_id")
+  priceWei          String        @map("price_wei")
+  status            ListingStatus @default(ACTIVE)
+  txHash            String?       @map("tx_hash")
+  listedAt          DateTime      @default(now()) @map("listed_at")
+  soldAt            DateTime?     @map("sold_at")
+  cancelledAt       DateTime?     @map("cancelled_at")
 
-  cub    Cub   @relation(fields: [cubId], references: [id])
-  seller User  @relation("SellerListings", fields: [sellerId], references: [id])
-  buyer  User? @relation("BuyerListings", fields: [buyerId], references: [id])
+  cub             Cub?             @relation(fields: [cubId], references: [id])
+  traitDefinition TraitDefinition? @relation(fields: [traitDefinitionId], references: [id])
+  crateDefinition CrateDefinition? @relation(fields: [crateDefinitionId], references: [id])
+  seller          User             @relation("SellerListings", fields: [sellerId], references: [id])
+  buyer           User?            @relation("BuyerListings", fields: [buyerId], references: [id])
 
+  @@index([status, assetType])
+  @@index([sellerId, status])
   @@map("marketplace_listings")
+}
+
+model MarketplaceSale {
+  id             String   @id @default(cuid())
+  listingId      String   @unique @map("listing_id")
+  sellerId       String   @map("seller_id")
+  buyerId        String   @map("buyer_id")
+  priceWei       String   @map("price_wei")
+  platformFeeWei String   @default("0") @map("platform_fee_wei")
+  royaltyFeeWei  String   @default("0") @map("royalty_fee_wei")
+  txHash         String?  @map("tx_hash")
+  completedAt    DateTime @default(now()) @map("completed_at")
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@map("marketplace_sales")
 }
 
 model TraitDefinition {
@@ -124,6 +154,7 @@ model TraitDefinition {
   createdAt     DateTime      @default(now()) @map("created_at")
 
   userTraits UserTrait[]
+  listings   MarketplaceListing[]
 
   @@unique([name, category])
   @@map("trait_definitions")
@@ -153,6 +184,7 @@ model CrateDefinition {
 
   userCrates UserCrate[]
   lootTable  LootTableEntry[]
+  listings   MarketplaceListing[]
 
   @@map("crate_definitions")
 }

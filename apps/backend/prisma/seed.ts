@@ -217,7 +217,55 @@ async function main() {
     });
   }
 
-  console.log("Seed complete: 2 users, 3 cubs, 12 traits, 25 trait definitions, 15 user traits, 4 crate definitions, 20 loot entries, 4 user crates");
+  // Phase 4: Sample marketplace listings
+  // List cub3 (owned by admin) for sale
+  await prisma.marketplaceListing.upsert({
+    where: { id: "seed-listing-cub-1" },
+    update: {},
+    create: {
+      id: "seed-listing-cub-1",
+      assetType: "CUB",
+      cubId: cub3.id,
+      sellerId: admin.id,
+      priceWei: "50000000000000000", // 0.05 ETH
+      quantity: 1,
+    },
+  });
+
+  // List some traits from test user
+  const traitDefsForListing = allDefs.slice(0, 3);
+  for (let i = 0; i < traitDefsForListing.length; i++) {
+    const def = traitDefsForListing[i];
+    await prisma.marketplaceListing.upsert({
+      where: { id: `seed-listing-trait-${i}` },
+      update: {},
+      create: {
+        id: `seed-listing-trait-${i}`,
+        assetType: "TRAIT",
+        traitDefinitionId: def.id,
+        sellerId: user1.id,
+        priceWei: `${(i + 1) * 10000000000000000}`, // 0.01-0.03 ETH
+        quantity: 1,
+      },
+    });
+  }
+
+  // List a crate from test user
+  const firstCrateDef = allCrateDefs[0];
+  await prisma.marketplaceListing.upsert({
+    where: { id: "seed-listing-crate-1" },
+    update: {},
+    create: {
+      id: "seed-listing-crate-1",
+      assetType: "CRATE",
+      crateDefinitionId: firstCrateDef.id,
+      sellerId: user1.id,
+      priceWei: "5000000000000000", // 0.005 ETH
+      quantity: 2,
+    },
+  });
+
+  console.log("Seed complete: 2 users, 3 cubs, 12 traits, 25 trait definitions, 15 user traits, 4 crate definitions, 20 loot entries, 4 user crates, 5 marketplace listings");
 }
 
 main()

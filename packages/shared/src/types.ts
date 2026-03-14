@@ -29,9 +29,15 @@ export interface Trait {
   displayOrder: number;
 }
 
+export type AssetType = "CUB" | "TRAIT" | "CRATE";
+
 export interface MarketplaceListing {
   id: string;
-  cubId: string;
+  assetType: AssetType;
+  cubId: string | null;
+  traitDefinitionId: string | null;
+  crateDefinitionId: string | null;
+  quantity: number;
   sellerId: string;
   buyerId: string | null;
   priceWei: string;
@@ -40,6 +46,32 @@ export interface MarketplaceListing {
   listedAt: string;
   soldAt: string | null;
   cancelledAt: string | null;
+  cub?: Cub;
+  traitDefinition?: TraitDefinition;
+  crateDefinition?: CrateDefinition;
+  seller?: Pick<User, "walletAddress" | "displayName">;
+}
+
+export interface MarketplaceSale {
+  id: string;
+  listingId: string;
+  sellerId: string;
+  buyerId: string;
+  priceWei: string;
+  platformFeeWei: string;
+  royaltyFeeWei: string;
+  txHash: string | null;
+  completedAt: string;
+}
+
+export interface MarketplaceFilters {
+  assetType?: AssetType;
+  rarity?: TraitRarity;
+  minPrice?: string;
+  maxPrice?: string;
+  sortBy?: "price_asc" | "price_desc" | "newest" | "oldest";
+  page?: number;
+  limit?: number;
 }
 
 export interface StakingPosition {

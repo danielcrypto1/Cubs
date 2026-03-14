@@ -33,3 +33,6 @@ export const TRAIT_LAYER_ORDER = [
   "MOUTH",
   "SPECIAL",
 ] as const;
+
+export const MARKETPLACE_PLATFORM_FEE_BPS = 250; // 2.5%
+export const MARKETPLACE_ROYALTY_BPS = 500; // 5%
