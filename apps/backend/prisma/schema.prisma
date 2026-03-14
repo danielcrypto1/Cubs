@@ -18,6 +18,33 @@ enum ListingStatus {
   CANCELLED
 }
 
+enum TraitCategory {
+  BACKGROUND
+  BODY
+  OUTFIT
+  SHOES
+  ACCESSORIES
+  HAT
+  EYES
+  MOUTH
+  SPECIAL
+}
+
+enum TraitRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum TraitAcquisition {
+  MINT
+  MARKETPLACE
+  CRATE
+  REWARD
+}
+
 model User {
   id            String   @id @default(cuid())
   walletAddress String   @unique @map("wallet_address")
@@ -84,6 +111,36 @@ model MarketplaceListing {
   buyer  User? @relation("BuyerListings", fields: [buyerId], references: [id])
 
   @@map("marketplace_listings")
+}
+
+model TraitDefinition {
+  id            String        @id @default(cuid())
+  name          String
+  category      TraitCategory
+  rarity        TraitRarity
+  maxSupply     Int           @map("max_supply")
+  currentSupply Int           @default(0) @map("current_supply")
+  imageUrl      String        @map("image_url")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  userTraits UserTrait[]
+
+  @@unique([name, category])
+  @@map("trait_definitions")
+}
+
+model UserTrait {
+  id                String           @id @default(cuid())
+  walletAddress     String           @map("wallet_address")
+  traitDefinitionId String           @map("trait_definition_id")
+  quantity          Int              @default(1)
+  acquiredFrom      TraitAcquisition @map("acquired_from")
+  acquiredAt        DateTime         @default(now()) @map("acquired_at")
+
+  traitDefinition TraitDefinition @relation(fields: [traitDefinitionId], references: [id])
+
+  @@unique([walletAddress, traitDefinitionId])
+  @@map("user_traits")
 }
 
 model StakingPosition {

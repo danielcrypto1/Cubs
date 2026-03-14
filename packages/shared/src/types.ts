@@ -57,3 +57,61 @@ export interface AuthSession {
   address: string;
   chainId: number;
 }
+
+// Phase 2: Trait System & Editor
+
+export type TraitCategory =
+  | "BACKGROUND"
+  | "BODY"
+  | "OUTFIT"
+  | "SHOES"
+  | "ACCESSORIES"
+  | "HAT"
+  | "EYES"
+  | "MOUTH"
+  | "SPECIAL";
+
+export type TraitRarity = "COMMON" | "UNCOMMON" | "RARE" | "EPIC" | "LEGENDARY";
+
+export type TraitAcquisition = "MINT" | "MARKETPLACE" | "CRATE" | "REWARD";
+
+export interface TraitDefinition {
+  id: string;
+  name: string;
+  category: TraitCategory;
+  rarity: TraitRarity;
+  maxSupply: number;
+  currentSupply: number;
+  imageUrl: string;
+  createdAt: string;
+}
+
+export interface UserTrait {
+  id: string;
+  walletAddress: string;
+  traitDefinitionId: string;
+  quantity: number;
+  acquiredFrom: TraitAcquisition;
+  acquiredAt: string;
+  traitDefinition?: TraitDefinition;
+}
+
+export interface EditorLayerConfig {
+  category: TraitCategory;
+  traitDefinitionId: string | null;
+  imageUrl: string | null;
+  name: string | null;
+}
+
+export interface EditorCubState {
+  cubId: string;
+  tokenId: number;
+  name: string | null;
+  layers: EditorLayerConfig[];
+}
+
+export interface EditorSaveResult {
+  cubId: string;
+  imageUrl: string;
+  metadataUri: string;
+}

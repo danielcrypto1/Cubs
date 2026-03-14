@@ -21,3 +21,15 @@ export const CONTRACT_ADDRESSES: Record<string, Record<string, `0x${string}`>> =
 export const IPFS_GATEWAYS = {
   PINATA: "https://gateway.pinata.cloud/ipfs/",
 } as const;
+
+export const TRAIT_LAYER_ORDER = [
+  "BACKGROUND",
+  "BODY",
+  "OUTFIT",
+  "SHOES",
+  "ACCESSORIES",
+  "HAT",
+  "EYES",
+  "MOUTH",
+  "SPECIAL",
+] as const;
