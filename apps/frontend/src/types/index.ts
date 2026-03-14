@@ -13,4 +13,8 @@ export type {
   EditorLayerConfig,
   EditorCubState,
   EditorSaveResult,
+  CrateDefinition,
+  UserCrate,
+  LootTableEntry,
+  CrateOpenResult,
 } from "@cubs/shared";

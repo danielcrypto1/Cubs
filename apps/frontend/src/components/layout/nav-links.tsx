@@ -9,6 +9,7 @@ const links = [
   { href: "/mint", label: "Mint" },
   { href: "/my-cubs", label: "My Cubs" },
   { href: "/editor", label: "Cub Editor" },
+  { href: "/crates", label: "Crates" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/staking", label: "Staking" },
   { href: "/token", label: "Token" },

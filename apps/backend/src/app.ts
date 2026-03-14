@@ -10,6 +10,7 @@ import marketplaceRoutes from "./routes/marketplace/index.js";
 import traitRegistryRoutes from "./routes/trait-registry/index.js";
 import userTraitRoutes from "./routes/user-traits/index.js";
 import editorRoutes from "./routes/editor/index.js";
+import crateRoutes from "./routes/crates/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -35,6 +36,7 @@ export async function buildApp() {
   await fastify.register(traitRegistryRoutes, { prefix: "/api/trait-registry" });
   await fastify.register(userTraitRoutes, { prefix: "/api/user-traits" });
   await fastify.register(editorRoutes, { prefix: "/api/editor" });
+  await fastify.register(crateRoutes, { prefix: "/api/crates" });
 
   // Health check
   fastify.get("/api/health", async () => ({ status: "ok" }));
