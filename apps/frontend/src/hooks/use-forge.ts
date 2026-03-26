@@ -164,6 +164,7 @@ export function useForge() {
       }
 
       return {
+        ...prev,
         cubType: newType,
         selections: newSelections,
         originalSelections: newSelections,

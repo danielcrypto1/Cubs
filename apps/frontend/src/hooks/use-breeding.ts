@@ -22,7 +22,7 @@ export function useBreeding(budBears: MockBudBear[]) {
     timeRemaining: 0,
     resultName: null,
   });
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
   const startTimeRef = useRef(0);
 
   const selectParent = useCallback((slot: 1 | 2, bearId: string) => {
