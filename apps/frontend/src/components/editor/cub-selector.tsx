@@ -1,54 +1,47 @@
 "use client";
 
-import Link from "next/link";
-import { useCubs } from "@/hooks/use-cubs";
-import { CubCard } from "@/components/cub/cub-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Button } from "@/components/ui/button";
-import { useAccount } from "wagmi";
+import Image from "next/image";
+import { MOCK_CUBS } from "@/lib/mock-data";
+import { Badge } from "@/components/ui/badge";
 
 interface CubSelectorProps {
   onSelect: (cubId: string) => void;
 }
 
 export function CubSelector({ onSelect }: CubSelectorProps) {
-  const { address } = useAccount();
-  const { data, loading } = useCubs(address);
-  const cubs = data?.cubs ?? [];
-
-  if (loading) {
-    return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="aspect-square rounded-lg" />
-        ))}
-      </div>
-    );
-  }
-
-  if (cubs.length === 0) {
-    return (
-      <EmptyState
-        title="No Cubs Found"
-        description="You don't own any Cubs yet. Mint one to get started!"
-        action={
-          <Button asChild>
-            <Link href="/mint">Go to Mint</Link>
-          </Button>
-        }
-      />
-    );
-  }
-
   return (
     <div>
       <p className="mb-4 text-sm text-muted-foreground">
         Select a Cub to customize
       </p>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {cubs.map((cub) => (
-          <CubCard key={cub.id} cub={cub} onClick={() => onSelect(cub.id)} />
+        {MOCK_CUBS.map((cub) => (
+          <button
+            key={cub.id}
+            onClick={() => onSelect(cub.id)}
+            className="cubs-card-hover group overflow-hidden rounded-2xl border border-border bg-card text-left transition-all hover:border-primary/50"
+          >
+            <div className="relative aspect-square overflow-hidden">
+              <Image
+                src={cub.imageUrl}
+                alt={cub.name}
+                fill
+                unoptimized
+                className="object-cover transition-transform group-hover:scale-105"
+              />
+            </div>
+            <div className="p-3">
+              <p className="font-bold">{cub.name}</p>
+              <p className="text-xs text-muted-foreground">Token #{cub.tokenId}</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {cub.traits.slice(0, 2).map((t) => (
+                  <Badge key={t.category} variant="outline" className="text-[10px]">
+                    {t.value}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </button>
         ))}
       </div>
     </div>

@@ -4,12 +4,12 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import type { TraitDefinition } from "@/types";
 
-const RARITY_COLORS: Record<string, string> = {
-  COMMON: "bg-zinc-600",
-  UNCOMMON: "bg-green-600",
-  RARE: "bg-blue-600",
-  EPIC: "bg-purple-600",
-  LEGENDARY: "bg-amber-500",
+const RARITY_VARIANTS: Record<string, "common" | "uncommon" | "rare" | "epic" | "legendary"> = {
+  COMMON: "common",
+  UNCOMMON: "uncommon",
+  RARE: "rare",
+  EPIC: "epic",
+  LEGENDARY: "legendary",
 };
 
 interface TraitItemProps {
@@ -32,15 +32,14 @@ export function TraitItem({ trait, quantity, isActive, onClick }: TraitItemProps
           src={trait.imageUrl}
           alt={trait.name}
           fill
+          unoptimized
           className="object-cover"
         />
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{trait.name}</p>
         <div className="flex items-center gap-1.5">
-          <Badge
-            className={`${RARITY_COLORS[trait.rarity] ?? ""} px-1.5 py-0 text-[10px] text-white`}
-          >
+          <Badge variant={RARITY_VARIANTS[trait.rarity] ?? "common"} className="text-[10px]">
             {trait.rarity}
           </Badge>
           <span className="text-xs text-muted-foreground">x{quantity}</span>

@@ -183,3 +183,125 @@ export interface CrateOpenResult {
   };
   remainingCrates: number;
 }
+
+// Phase 5: Media Kit Editor
+
+export type EditorMode = "pfp" | "banner";
+
+export type MediaKitLayerType =
+  | "background"
+  | "nft"
+  | "overlay"
+  | "text"
+  | "image";
+
+export interface GradientStop {
+  color: string;
+  position: number;
+}
+
+export interface GradientConfig {
+  type: "linear" | "radial";
+  angle: number;
+  stops: GradientStop[];
+}
+
+export interface MediaKitLayer {
+  id: string;
+  type: MediaKitLayerType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  imageUrl?: string;
+  text?: string;
+  fontFamily?: string;
+  fontSize?: number;
+  fontColor?: string;
+  backgroundColor?: string;
+  gradient?: GradientConfig;
+  pattern?: string;
+  zIndex: number;
+  visible: boolean;
+}
+
+export interface BackgroundPreset {
+  id: string;
+  name: string;
+  type: "solid" | "gradient" | "pattern";
+  value: string;
+  gradient?: GradientConfig;
+  thumbnailUrl?: string;
+}
+
+export interface OverlayAsset {
+  id: string;
+  name: string;
+  imageUrl: string;
+  thumbnailUrl: string;
+  defaultWidth: number;
+  defaultHeight: number;
+}
+
+export interface FontOption {
+  family: string;
+  label: string;
+}
+
+// Phase 9: NFT Dashboard — Breed, Burn, Bridge
+
+export interface BudBear {
+  id: string;
+  tokenId: number;
+  name: string;
+  imageUrl: string;
+  breedCount: number;
+  lastBreedAt: string | null;
+  ownerId: string;
+}
+
+export type BreedingStatus = "idle" | "selecting" | "confirming" | "breeding" | "complete";
+
+export interface BreedingPair {
+  id: string;
+  parent1Id: string;
+  parent2Id: string;
+  status: BreedingStatus;
+  startedAt: string;
+  completesAt: string;
+  resultCubId: string | null;
+}
+
+export interface BurnResult {
+  cubId: string;
+  rewardsEarned: {
+    tokenAmount: number;
+    traitDrops: TraitDefinition[];
+  };
+}
+
+export type BridgeStatus = "idle" | "configured" | "confirming" | "bridging" | "complete" | "failed";
+
+export interface BridgeChain {
+  id: string;
+  name: string;
+  icon: string;
+  chainId: number;
+  status: "active" | "coming_soon";
+  estimatedTime: string;
+  estimatedGas: string;
+}
+
+export interface BridgeRequest {
+  id: string;
+  cubId: string;
+  sourceChain: string;
+  destChain: string;
+  status: BridgeStatus;
+  txHash: string | null;
+  initiatedAt: string;
+  completedAt: string | null;
+}
+
+export type DashboardTab = "collection" | "forge" | "breed" | "modify" | "mint-burn" | "bridge";

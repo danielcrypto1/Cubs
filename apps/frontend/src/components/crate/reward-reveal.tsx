@@ -5,20 +5,20 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import type { CrateOpenResult } from "@/types";
 
+const RARITY_VARIANTS: Record<string, "common" | "uncommon" | "rare" | "epic" | "legendary"> = {
+  COMMON: "common",
+  UNCOMMON: "uncommon",
+  RARE: "rare",
+  EPIC: "epic",
+  LEGENDARY: "legendary",
+};
+
 const RARITY_GLOW: Record<string, string> = {
   COMMON: "shadow-zinc-400/50",
   UNCOMMON: "shadow-green-400/50",
   RARE: "shadow-blue-400/50",
   EPIC: "shadow-purple-400/50",
   LEGENDARY: "shadow-amber-400/50",
-};
-
-const RARITY_COLORS: Record<string, string> = {
-  COMMON: "bg-zinc-600",
-  UNCOMMON: "bg-green-600",
-  RARE: "bg-blue-600",
-  EPIC: "bg-purple-600",
-  LEGENDARY: "bg-amber-500",
 };
 
 interface RewardRevealProps {
@@ -31,8 +31,8 @@ export function RewardReveal({ result }: RewardRevealProps) {
 
   return (
     <motion.div
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+      initial={{ scale: 0, opacity: 0, rotateY: 180 }}
+      animate={{ scale: 1, opacity: 1, rotateY: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 15 }}
       className="flex flex-col items-center gap-4"
     >
@@ -41,15 +41,14 @@ export function RewardReveal({ result }: RewardRevealProps) {
           src={traitDefinition.imageUrl}
           alt={traitDefinition.name}
           fill
+          unoptimized
           className="object-cover"
         />
       </div>
       <div className="text-center">
         <h3 className="text-lg font-bold">{traitDefinition.name}</h3>
         <div className="mt-1 flex items-center justify-center gap-2">
-          <Badge
-            className={`${RARITY_COLORS[rarity] ?? ""} px-2 py-0.5 text-xs text-white`}
-          >
+          <Badge variant={RARITY_VARIANTS[rarity] ?? "common"}>
             {rarity}
           </Badge>
           <span className="text-xs text-muted-foreground">

@@ -7,6 +7,7 @@ import { CrateOpenModal } from "@/components/crate/crate-open-modal";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCrates } from "@/hooks/use-crates";
+import { MOCK_CRATES } from "@/lib/mock-data";
 import type { UserCrate, CrateOpenResult, CrateDefinition } from "@/types";
 
 export default function CratesPage() {
@@ -47,7 +48,7 @@ export default function CratesPage() {
 
   if (loading) {
     return (
-      <div>
+      <div className="mx-auto max-w-7xl px-4">
         <PageHeader
           title="Crates"
           description="Open crates to discover new traits for your Cubs"
@@ -62,7 +63,7 @@ export default function CratesPage() {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-7xl px-4">
       <PageHeader
         title="Crates"
         description="Open crates to discover new traits for your Cubs"
@@ -81,6 +82,7 @@ export default function CratesPage() {
                 key={crate.id}
                 crateDefinition={crate.crateDefinition}
                 quantity={crate.quantity}
+                dropRates={MOCK_CRATES.find((mc) => mc.id === crate.crateDefinitionId)?.dropRates}
                 onOpen={() => handleOpen(crate)}
                 isOpening={openingCrateId === crate.crateDefinitionId}
               />

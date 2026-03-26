@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -13,152 +16,254 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { useListingActions } from "@/hooks/use-listing-actions";
-import { formatEthToWei } from "@/lib/format";
-import { useCubs } from "@/hooks/use-cubs";
-import { useCrates } from "@/hooks/use-crates";
-import type { AssetType } from "@/types";
+import { Plus, CheckCircle2, Loader2 } from "lucide-react";
+import { MOCK_CUBS, MOCK_CRATES, MOCK_TRAIT_DEFINITIONS } from "@/lib/mock-data";
+import { popIn, springBouncy } from "@/lib/animations";
+import type { MockListing } from "@/lib/mock-data";
+
+type AssetTab = "CUB" | "TRAIT" | "CRATE";
+type SellStep = "select" | "processing" | "success";
 
 interface SellModalProps {
-  walletAddress: string | undefined;
-  onSuccess: () => void;
+  onSuccess: (listing: MockListing) => void;
 }
 
-export function SellModal({ walletAddress, onSuccess }: SellModalProps) {
+export function SellModal({ onSuccess }: SellModalProps) {
   const [open, setOpen] = useState(false);
-  const [assetType, setAssetType] = useState<AssetType>("CUB");
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [assetType, setAssetType] = useState<AssetTab>("CUB");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedName, setSelectedName] = useState("");
+  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedRarity, setSelectedRarity] = useState("COMMON");
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState("1");
-  const { listItem, loading } = useListingActions();
+  const [step, setStep] = useState<SellStep>("select");
 
-  const { data: cubsData } = useCubs(walletAddress);
-  const { data: cratesData } = useCrates();
-
-  const handleSubmit = async () => {
-    if (!selectedAssetId || !price) return;
-
-    const priceWei = formatEthToWei(price);
-    if (priceWei === "0") return;
-
-    try {
-      await listItem({
-        assetType,
-        assetId: selectedAssetId,
-        quantity: assetType === "CUB" ? 1 : parseInt(quantity, 10) || 1,
-        priceWei,
-      });
-      setOpen(false);
-      setSelectedAssetId(null);
-      setPrice("");
-      setQuantity("1");
-      onSuccess();
-    } catch {
-      // error handled by hook
-    }
+  const handleSelect = (id: string, name: string, image: string, rarity: string, category?: string) => {
+    setSelectedId(id);
+    setSelectedName(name);
+    setSelectedImage(image);
+    setSelectedRarity(rarity);
+    setSelectedCategory(category);
   };
 
-  const cubs = cubsData?.cubs ?? [];
-  const crates = cratesData ?? [];
+  const handleSubmit = async () => {
+    if (!selectedId || !price || parseFloat(price) <= 0) return;
+
+    setStep("processing");
+    // Simulate transaction
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const newListing: MockListing = {
+      id: `l-${Date.now()}`,
+      type: assetType,
+      name: selectedName,
+      imageUrl: selectedImage,
+      rarity: selectedRarity,
+      price,
+      seller: "0xYOU...rWallet",
+      category: selectedCategory,
+      listedAt: new Date().toISOString(),
+      quantity: 1,
+    };
+
+    setStep("success");
+
+    // Delay before calling onSuccess so user sees confirmation
+    setTimeout(() => {
+      onSuccess(newListing);
+    }, 500);
+  };
+
+  const handleClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      setTimeout(() => {
+        setStep("select");
+        setSelectedId(null);
+        setPrice("");
+      }, 200);
+    }
+    setOpen(isOpen);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
-        <Button disabled={!walletAddress}>Sell Item</Button>
+        <Button>
+          <Plus className="mr-1.5 h-4 w-4" />
+          Sell Item
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>List Item for Sale</DialogTitle>
-          <DialogDescription>Choose an asset type and select the item to list.</DialogDescription>
-        </DialogHeader>
+        <AnimatePresence mode="wait">
+          {step === "select" && (
+            <motion.div
+              key="select"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <DialogHeader>
+                <DialogTitle>List Item for Sale</DialogTitle>
+                <DialogDescription>Choose an asset and set your price.</DialogDescription>
+              </DialogHeader>
 
-        <Tabs value={assetType} onValueChange={(v) => { setAssetType(v as AssetType); setSelectedAssetId(null); }}>
-          <TabsList className="w-full">
-            <TabsTrigger value="CUB" className="flex-1">Cubs</TabsTrigger>
-            <TabsTrigger value="TRAIT" className="flex-1">Traits</TabsTrigger>
-            <TabsTrigger value="CRATE" className="flex-1">Crates</TabsTrigger>
-          </TabsList>
+              <Tabs
+                value={assetType}
+                onValueChange={(v) => {
+                  setAssetType(v as AssetTab);
+                  setSelectedId(null);
+                }}
+              >
+                <TabsList className="mt-4 w-full">
+                  <TabsTrigger value="CUB" className="flex-1">Cubs</TabsTrigger>
+                  <TabsTrigger value="TRAIT" className="flex-1">Traits</TabsTrigger>
+                  <TabsTrigger value="CRATE" className="flex-1">Crates</TabsTrigger>
+                </TabsList>
 
-          <TabsContent value="CUB" className="mt-4">
-            <div className="grid max-h-48 grid-cols-3 gap-2 overflow-y-auto">
-              {cubs.map((cub) => (
-                <button
-                  key={cub.id}
-                  type="button"
-                  onClick={() => setSelectedAssetId(cub.id)}
-                  className={`rounded-lg border p-2 text-left text-xs transition-colors ${
-                    selectedAssetId === cub.id ? "border-primary bg-primary/10" : "hover:bg-accent"
-                  }`}
+                <TabsContent value="CUB" className="mt-4">
+                  <div className="grid max-h-48 grid-cols-3 gap-2 overflow-y-auto">
+                    {MOCK_CUBS.map((cub) => (
+                      <button
+                        key={cub.id}
+                        type="button"
+                        onClick={() => handleSelect(cub.id, cub.name, cub.imageUrl, "EPIC")}
+                        className={`overflow-hidden rounded-lg border text-left transition-all ${
+                          selectedId === cub.id
+                            ? "border-primary ring-2 ring-primary/30"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="relative aspect-square">
+                          <Image src={cub.imageUrl} alt={cub.name} fill unoptimized className="object-cover" />
+                        </div>
+                        <p className="truncate px-2 py-1 text-xs font-medium">{cub.name}</p>
+                      </button>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="TRAIT" className="mt-4">
+                  <div className="grid max-h-48 grid-cols-3 gap-2 overflow-y-auto">
+                    {MOCK_TRAIT_DEFINITIONS.slice(0, 12).map((trait) => (
+                      <button
+                        key={trait.id}
+                        type="button"
+                        onClick={() => handleSelect(trait.id, trait.name, trait.imageUrl, trait.rarity, trait.category)}
+                        className={`overflow-hidden rounded-lg border text-left transition-all ${
+                          selectedId === trait.id
+                            ? "border-primary ring-2 ring-primary/30"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="relative aspect-square">
+                          <Image src={trait.imageUrl} alt={trait.name} fill unoptimized className="object-cover" />
+                        </div>
+                        <div className="px-2 py-1">
+                          <p className="truncate text-xs font-medium">{trait.name}</p>
+                          <Badge variant="outline" className="mt-0.5 text-[8px]">{trait.rarity}</Badge>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="CRATE" className="mt-4">
+                  <div className="grid max-h-48 grid-cols-3 gap-2 overflow-y-auto">
+                    {MOCK_CRATES.filter((c) => c.quantity > 0).map((crate) => (
+                      <button
+                        key={crate.id}
+                        type="button"
+                        onClick={() => handleSelect(crate.id, crate.name, crate.imageUrl, crate.rarity)}
+                        className={`overflow-hidden rounded-lg border text-left transition-all ${
+                          selectedId === crate.id
+                            ? "border-primary ring-2 ring-primary/30"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="relative aspect-square">
+                          <Image src={crate.imageUrl} alt={crate.name} fill unoptimized className="object-cover" />
+                        </div>
+                        <div className="px-2 py-1">
+                          <p className="truncate text-xs font-medium">{crate.name}</p>
+                          <Badge variant="secondary" className="mt-0.5 text-[8px]">x{crate.quantity}</Badge>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="text-sm font-medium">Price (ETH)</label>
+                  <Input
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    placeholder="0.05"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={() => handleClose(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!selectedId || !price || parseFloat(price) <= 0}
                 >
-                  <div className="font-medium truncate">{cub.name || `Cub #${cub.tokenId}`}</div>
-                </button>
-              ))}
-              {cubs.length === 0 && <p className="col-span-3 text-sm text-muted-foreground">No cubs owned</p>}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="TRAIT" className="mt-4">
-            <p className="text-sm text-muted-foreground">
-              Connect wallet and use the trait inventory to select traits for listing.
-            </p>
-          </TabsContent>
-
-          <TabsContent value="CRATE" className="mt-4">
-            <div className="grid max-h-48 grid-cols-3 gap-2 overflow-y-auto">
-              {crates.map((crate) =>
-                crate.crateDefinition ? (
-                  <button
-                    key={crate.crateDefinitionId}
-                    type="button"
-                    onClick={() => setSelectedAssetId(crate.crateDefinitionId)}
-                    className={`rounded-lg border p-2 text-left text-xs transition-colors ${
-                      selectedAssetId === crate.crateDefinitionId ? "border-primary bg-primary/10" : "hover:bg-accent"
-                    }`}
-                  >
-                    <div className="font-medium truncate">{crate.crateDefinition.name}</div>
-                    <Badge variant="secondary" className="mt-1 text-xs">x{crate.quantity}</Badge>
-                  </button>
-                ) : null,
-              )}
-              {crates.length === 0 && <p className="col-span-3 text-sm text-muted-foreground">No crates owned</p>}
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        <div className="space-y-3 pt-2">
-          <div>
-            <label className="text-sm font-medium">Price (ETH)</label>
-            <Input
-              type="number"
-              step="0.001"
-              min="0"
-              placeholder="0.05"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </div>
-          {assetType !== "CUB" && (
-            <div>
-              <label className="text-sm font-medium">Quantity</label>
-              <Input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-              />
-            </div>
+                  List for Sale
+                </Button>
+              </DialogFooter>
+            </motion.div>
           )}
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={loading || !selectedAssetId || !price}>
-            {loading ? "Listing..." : "List for Sale"}
-          </Button>
-        </DialogFooter>
+          {step === "processing" && (
+            <motion.div
+              key="processing"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center py-8"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="h-12 w-12 text-primary" />
+              </motion.div>
+              <h3 className="mt-4 font-semibold">Creating Listing</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Confirming transaction...</p>
+            </motion.div>
+          )}
+
+          {step === "success" && (
+            <motion.div
+              key="success"
+              variants={popIn}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col items-center py-6"
+            >
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={springBouncy}>
+                <CheckCircle2 className="h-16 w-16 text-green-500" />
+              </motion.div>
+              <h3 className="mt-4 text-lg font-bold">Listed Successfully!</h3>
+              <p className="mt-1 text-center text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{selectedName}</span> is now listed for{" "}
+                <span className="font-semibold text-foreground">{price} ETH</span>
+              </p>
+              <Button className="mt-4 w-full" onClick={() => handleClose(false)}>
+                Done
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

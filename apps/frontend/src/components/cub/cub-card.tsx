@@ -19,10 +19,10 @@ export function CubCard({ cub, onClick }: CubCardProps) {
       transition={{ duration: 0.3 }}
     >
       <Card
-        className="cursor-pointer overflow-hidden transition-colors hover:border-primary/50"
+        className="cursor-pointer overflow-hidden cubs-card-hover"
         onClick={onClick}
       >
-        <div className="relative aspect-square">
+        <div className="relative aspect-square cubs-image-zoom">
           {cub.imageUrl ? (
             <Image
               src={cub.imageUrl}

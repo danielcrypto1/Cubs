@@ -20,4 +20,8 @@ export type {
   UserCrate,
   LootTableEntry,
   CrateOpenResult,
+  DashboardTab,
+  EditorMode,
+  MediaKitLayer,
+  GradientConfig,
 } from "@cubs/shared";

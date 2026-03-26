@@ -1,26 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { api } from "@/lib/api-client";
-import type { UserTrait } from "@/types";
+import { useCallback, useSyncExternalStore } from "react";
+import { traitStore } from "@/lib/trait-store";
 
 export function useUserTraits() {
-  const [data, setData] = useState<UserTrait[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const data = useSyncExternalStore(
+    traitStore.subscribe,
+    traitStore.getTraits,
+    traitStore.getTraits,
+  );
 
   const refetch = useCallback(() => {
-    setLoading(true);
-    api
-      .get<{ data: UserTrait[] }>("/api/user-traits")
-      .then((res) => setData(res.data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+    // No-op for mock data — store is reactive
   }, []);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  return { data, loading, error, refetch };
+  return { data, loading: false, error: null, refetch };
 }

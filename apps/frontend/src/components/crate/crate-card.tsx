@@ -7,43 +7,51 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { CrateDefinition } from "@/types";
 
-const RARITY_COLORS: Record<string, string> = {
-  COMMON: "bg-zinc-600",
-  UNCOMMON: "bg-green-600",
-  RARE: "bg-blue-600",
-  EPIC: "bg-purple-600",
-  LEGENDARY: "bg-amber-500",
+const RARITY_VARIANTS: Record<string, "common" | "uncommon" | "rare" | "epic" | "legendary"> = {
+  COMMON: "common",
+  UNCOMMON: "uncommon",
+  RARE: "rare",
+  EPIC: "epic",
+  LEGENDARY: "legendary",
+};
+
+const DROP_RATE_COLORS: Record<string, string> = {
+  Common: "text-zinc-400",
+  Uncommon: "text-green-400",
+  Rare: "text-blue-400",
+  Epic: "text-purple-400",
+  Legendary: "text-amber-400",
 };
 
 interface CrateCardProps {
   crateDefinition: CrateDefinition;
   quantity: number;
+  dropRates?: { rarity: string; chance: number }[];
   onOpen: () => void;
   isOpening: boolean;
 }
 
-export function CrateCard({ crateDefinition, quantity, onOpen, isOpening }: CrateCardProps) {
+export function CrateCard({ crateDefinition, quantity, dropRates, onOpen, isOpening }: CrateCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden cubs-card-hover">
         <div className="relative aspect-square">
           <Image
             src={crateDefinition.imageUrl}
             alt={crateDefinition.name}
             fill
+            unoptimized
             className="object-cover"
           />
         </div>
         <CardHeader className="p-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">{crateDefinition.name}</CardTitle>
-            <Badge
-              className={`${RARITY_COLORS[crateDefinition.rarity] ?? ""} px-2 py-0.5 text-xs text-white`}
-            >
+            <Badge variant={RARITY_VARIANTS[crateDefinition.rarity] ?? "common"}>
               {crateDefinition.rarity}
             </Badge>
           </div>
@@ -51,7 +59,38 @@ export function CrateCard({ crateDefinition, quantity, onOpen, isOpening }: Crat
             <p className="text-xs text-muted-foreground">{crateDefinition.description}</p>
           )}
         </CardHeader>
-        <CardContent className="px-4 pb-4 pt-0">
+        <CardContent className="px-4 pb-4 pt-0 space-y-3">
+          {/* Drop rates */}
+          {dropRates && dropRates.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Drop Rates
+              </p>
+              {dropRates.map((rate) => (
+                <div key={rate.rarity} className="flex items-center justify-between text-xs">
+                  <span className={DROP_RATE_COLORS[rate.rarity] ?? "text-muted-foreground"}>
+                    {rate.rarity}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full ${
+                          rate.rarity === "Legendary" ? "bg-amber-400" :
+                          rate.rarity === "Epic" ? "bg-purple-400" :
+                          rate.rarity === "Rare" ? "bg-blue-400" :
+                          rate.rarity === "Uncommon" ? "bg-green-400" :
+                          "bg-zinc-400"
+                        }`}
+                        style={{ width: `${rate.chance}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-right text-muted-foreground">{rate.chance}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Owned: {quantity}</span>
             <Button

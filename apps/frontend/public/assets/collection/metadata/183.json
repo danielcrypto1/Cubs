@@ -1,0 +1,11 @@
+{
+  "name": "Cubs NFT #183",
+  "description": "Little paws, big adventures. Fuelled by Creative IP. Building on Hyperliquid.",
+  "image": "ipfs://path_to_your_image/183.png",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "1 of 1"
+    }
+  ]
+}

@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { api } from "@/lib/api-client";
 import { TRAIT_LAYER_ORDER } from "@/lib/constants";
-import type { EditorCubState, EditorLayerConfig, EditorSaveResult, TraitCategory } from "@/types";
+import {
+  MOCK_EDITOR_CUB_STATES,
+  MOCK_TRAIT_DEFINITIONS,
+} from "@/lib/mock-data";
+import type {
+  EditorCubState,
+  EditorLayerConfig,
+  EditorSaveResult,
+  TraitCategory,
+} from "@/types";
 
 interface EditorHistory {
   past: EditorLayerConfig[][];
@@ -15,41 +23,45 @@ export function useEditor() {
   const [history, setHistory] = useState<EditorHistory | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scene, setSceneState] = useState<string | null>(null);
 
-  const loadCub = useCallback(async (cubId: string) => {
+  const loadCub = useCallback((cubId: string) => {
     setError(null);
-    try {
-      const res = await api.get<{ data: EditorCubState }>(`/api/editor/cub/${cubId}`);
-      setCubState(res.data);
-      setHistory({ past: [], current: res.data.layers });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load cub");
+    const state = MOCK_EDITOR_CUB_STATES[cubId];
+    if (!state) {
+      setError("Cub not found");
+      return;
     }
+    setCubState(state);
+    setHistory({ past: [], current: state.layers });
   }, []);
 
   const applyTrait = useCallback(
-    async (traitDefinitionId: string) => {
+    (traitDefinitionId: string) => {
       if (!cubState || !history) return;
       setError(null);
 
-      try {
-        const res = await api.post<{ data: EditorLayerConfig }>("/api/editor/apply-trait", {
-          cubId: cubState.cubId,
-          traitDefinitionId,
-        });
-
-        const newLayer = res.data;
-        const newLayers = history.current.map((l) =>
-          l.category === newLayer.category ? newLayer : l,
-        );
-
-        setHistory({
-          past: [...history.past, history.current],
-          current: newLayers,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to apply trait");
+      const def = MOCK_TRAIT_DEFINITIONS.find((t) => t.id === traitDefinitionId);
+      if (!def) {
+        setError("Trait not found");
+        return;
       }
+
+      const newLayer: EditorLayerConfig = {
+        category: def.category,
+        traitDefinitionId: def.id,
+        imageUrl: def.imageUrl,
+        name: def.name,
+      };
+
+      const newLayers = history.current.map((l) =>
+        l.category === newLayer.category ? newLayer : l,
+      );
+
+      setHistory({
+        past: [...history.past, history.current],
+        current: newLayers,
+      });
     },
     [cubState, history],
   );
@@ -92,28 +104,20 @@ export function useEditor() {
     setSaving(true);
     setError(null);
 
-    try {
-      const layers = TRAIT_LAYER_ORDER.map((category) => {
-        const layer = history.current.find((l) => l.category === category);
-        return {
-          category,
-          traitDefinitionId: layer?.traitDefinitionId ?? null,
-        };
-      });
+    // Simulate save delay
+    await new Promise((r) => setTimeout(r, 500));
+    setSaving(false);
 
-      const res = await api.post<{ data: EditorSaveResult }>("/api/editor/save", {
-        cubId: cubState.cubId,
-        layers,
-      });
-
-      return res.data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Save failed");
-      return null;
-    } finally {
-      setSaving(false);
-    }
+    return {
+      cubId: cubState.cubId,
+      imageUrl: "https://placehold.co/1024x1024/1a1a2e/f59e0b?text=Saved",
+      metadataUri: "ipfs://mock-metadata-uri",
+    };
   }, [cubState, history]);
+
+  const setScene = useCallback((sceneId: string | null) => {
+    setSceneState(sceneId);
+  }, []);
 
   const hasChanges = history !== null && history.past.length > 0;
   const canUndo = history !== null && history.past.length > 0;
@@ -131,5 +135,7 @@ export function useEditor() {
     error,
     hasChanges,
     canUndo,
+    scene,
+    setScene,
   };
 }

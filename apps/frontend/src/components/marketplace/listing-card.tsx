@@ -4,112 +4,110 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PriceDisplay } from "./price-display";
-import { BuyButton } from "./buy-button";
-import type { MarketplaceListing } from "@/types";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, X as XIcon } from "lucide-react";
+import { staggerItem, springBouncy } from "@/lib/animations";
+import type { MockListing } from "@/lib/mock-data";
 
-const RARITY_COLORS: Record<string, string> = {
-  COMMON: "bg-zinc-600",
-  UNCOMMON: "bg-green-600",
-  RARE: "bg-blue-600",
-  EPIC: "bg-purple-600",
-  LEGENDARY: "bg-amber-500",
+const RARITY_VARIANTS: Record<string, "common" | "uncommon" | "rare" | "epic" | "legendary"> = {
+  COMMON: "common",
+  UNCOMMON: "uncommon",
+  RARE: "rare",
+  EPIC: "epic",
+  LEGENDARY: "legendary",
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  CUB: "Cub",
+  TRAIT: "Trait",
+  CRATE: "Crate",
 };
 
 interface ListingCardProps {
-  listing: MarketplaceListing;
+  listing: MockListing;
   isOwn: boolean;
-  onBuy: (listingId: string) => void;
+  onBuy: (listing: MockListing) => void;
   onCancel: (listingId: string) => void;
-  buyLoading: boolean;
+  actionLoading: boolean;
 }
 
-function getAssetInfo(listing: MarketplaceListing) {
-  switch (listing.assetType) {
-    case "CUB":
-      return {
-        name: listing.cub?.name || `Cub #${listing.cub?.tokenId}`,
-        imageUrl: listing.cub?.imageUrl,
-        rarity: null,
-        badge: "Cub",
-      };
-    case "TRAIT":
-      return {
-        name: listing.traitDefinition?.name || "Trait",
-        imageUrl: listing.traitDefinition?.imageUrl,
-        rarity: listing.traitDefinition?.rarity,
-        badge: listing.traitDefinition?.category || "Trait",
-      };
-    case "CRATE":
-      return {
-        name: listing.crateDefinition?.name || "Crate",
-        imageUrl: listing.crateDefinition?.imageUrl,
-        rarity: listing.crateDefinition?.rarity,
-        badge: "Crate",
-      };
-  }
-}
-
-export function ListingCard({ listing, isOwn, onBuy, onCancel, buyLoading }: ListingCardProps) {
-  const asset = getAssetInfo(listing);
-
+export function ListingCard({ listing, isOwn, onBuy, onCancel, actionLoading }: ListingCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      variants={staggerItem}
+      whileHover={{ y: -4, transition: springBouncy }}
+      whileTap={{ scale: 0.98 }}
+      layout
     >
-      <Card className="overflow-hidden transition-colors hover:border-primary/50">
-        <div className="relative aspect-square overflow-hidden bg-muted">
-          {asset.imageUrl ? (
-            <Image
-              src={asset.imageUrl}
-              alt={asset.name}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              No Image
-            </div>
-          )}
+      <Card className="overflow-hidden cubs-card-hover">
+        <div className="relative aspect-square overflow-hidden bg-muted cubs-image-zoom">
+          <Image
+            src={listing.imageUrl}
+            alt={listing.name}
+            fill
+            unoptimized
+            className="object-cover"
+          />
+          <Badge variant="outline" className="absolute left-2 top-2 bg-background/80 text-[10px] backdrop-blur-sm">
+            {TYPE_LABELS[listing.type] || listing.type}
+          </Badge>
           {listing.quantity > 1 && (
-            <Badge variant="secondary" className="absolute right-2 top-2">
+            <Badge variant="secondary" className="absolute right-2 top-2 text-[10px]">
               x{listing.quantity}
             </Badge>
           )}
         </div>
+
         <CardHeader className="p-3 pb-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-sm font-medium">{asset.name}</h3>
-            <Badge variant="outline" className="shrink-0 text-xs">
-              {asset.badge}
+          <div className="flex items-start justify-between gap-1">
+            <h3 className="truncate text-sm font-semibold">{listing.name}</h3>
+            <Badge
+              variant={RARITY_VARIANTS[listing.rarity] ?? "common"}
+              className="shrink-0 text-[9px]"
+            >
+              {listing.rarity}
             </Badge>
           </div>
-          {asset.rarity && (
-            <Badge className={`${RARITY_COLORS[asset.rarity]} w-fit text-xs text-white`}>
-              {asset.rarity}
-            </Badge>
+          {listing.category && (
+            <span className="text-[10px] text-muted-foreground">{listing.category}</span>
           )}
         </CardHeader>
-        <CardContent className="flex items-center justify-between p-3 pt-1">
-          <PriceDisplay priceWei={listing.priceWei} className="text-sm" />
+
+        <CardContent className="space-y-2 p-3 pt-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-base font-bold">{listing.price}</span>
+              <span className="ml-1 text-xs text-muted-foreground">ETH</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="truncate text-[10px] text-muted-foreground">
+              {listing.seller}
+            </span>
+          </div>
+
           {isOwn ? (
-            <BuyButton
-              label="Cancel"
+            <Button
+              size="sm"
               variant="outline"
-              onConfirm={() => onCancel(listing.id)}
-              confirmMessage="Cancel this listing?"
-              loading={buyLoading}
-            />
+              className="w-full"
+              disabled={actionLoading}
+              onClick={() => onCancel(listing.id)}
+            >
+              <XIcon className="mr-1.5 h-3.5 w-3.5" />
+              Cancel Listing
+            </Button>
           ) : (
-            <BuyButton
-              label="Buy"
-              variant="default"
-              onConfirm={() => onBuy(listing.id)}
-              confirmMessage={`Buy for ${listing.priceWei} Wei?`}
-              loading={buyLoading}
-            />
+            <Button
+              size="sm"
+              className="w-full"
+              disabled={actionLoading}
+              onClick={() => onBuy(listing)}
+            >
+              <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
+              Buy Now
+            </Button>
           )}
         </CardContent>
       </Card>

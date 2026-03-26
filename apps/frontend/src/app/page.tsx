@@ -1,68 +1,69 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+"use client";
 
-const features = [
+import {
+  Building2,
+  Paintbrush,
+  ShoppingBag,
+  FlaskConical,
+  Vault,
+  Hammer,
+} from "lucide-react";
+import { WorldMap, type MapLocationData } from "@/components/map/world-map";
+import { FloatingBackground } from "@/components/shared/floating-background";
+
+const MAP_LOCATIONS: MapLocationData[] = [
   {
-    title: "Mint Cubs",
-    description: "Mint unique Cubs NFTs with randomized traits",
+    id: "city",
+    name: "Cub City",
+    description: "Mint new Cubs into existence",
     href: "/mint",
+    icon: Building2,
+    colour: "text-cubs-gold",
+    position: { left: "20%", top: "45%" },
   },
   {
-    title: "Cub Editor",
-    description: "Customize and edit your Cubs with new traits",
-    href: "/editor",
+    id: "forge",
+    name: "Cub Forge",
+    description: "Customize traits and forge new Cubs",
+    href: "/forge",
+    icon: Hammer,
+    colour: "text-cubs-orange",
+    position: { left: "45%", top: "30%" },
   },
   {
-    title: "Marketplace",
-    description: "Buy and sell Cubs on the open marketplace",
+    id: "market",
+    name: "Cub Market",
+    description: "Buy and sell on the marketplace",
     href: "/marketplace",
+    icon: ShoppingBag,
+    colour: "text-cubs-sky",
+    position: { left: "75%", top: "40%" },
   },
   {
-    title: "Staking",
-    description: "Stake your Cubs to earn CUBS tokens",
+    id: "labs",
+    name: "Cub Labs",
+    description: "Open crates for rare rewards",
+    href: "/crates",
+    icon: FlaskConical,
+    colour: "text-cubs-purple",
+    position: { left: "60%", top: "65%" },
+  },
+  {
+    id: "vault",
+    name: "Cub Vault",
+    description: "Stake Cubs and earn points",
     href: "/staking",
-  },
-  {
-    title: "Token Dashboard",
-    description: "Track your CUBS token balance and rewards",
-    href: "/token",
-  },
-  {
-    title: "My Cubs",
-    description: "View and manage your Cubs collection",
-    href: "/my-cubs",
+    icon: Vault,
+    colour: "text-cubs-green",
+    position: { left: "30%", top: "70%" },
   },
 ];
 
 export default function HomePage() {
   return (
-    <div>
-      {/* Hero */}
-      <section className="py-16 text-center">
-        <h1 className="text-5xl font-bold tracking-tight">
-          Welcome to <span className="text-primary">CUBS</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-          The complete NFT ecosystem on Ethereum. Mint, customize, trade, and
-          stake your Cubs.
-        </p>
-      </section>
-
-      {/* Feature Cards */}
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((feature) => (
-          <a key={feature.href} href={feature.href}>
-            <Card className="h-full transition-colors hover:border-primary/50">
-              <CardHeader>
-                <CardTitle>{feature.title}</CardTitle>
-                <CardDescription>{feature.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="text-sm text-primary">Explore &rarr;</span>
-              </CardContent>
-            </Card>
-          </a>
-        ))}
-      </section>
+    <div className="-mt-24">
+      <FloatingBackground count={12} />
+      <WorldMap locations={MAP_LOCATIONS} />
     </div>
   );
 }

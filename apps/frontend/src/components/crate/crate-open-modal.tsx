@@ -4,7 +4,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { RewardReveal } from "./reward-reveal";
+import { popIn } from "@/lib/animations";
 import type { CrateDefinition, CrateOpenResult } from "@/types";
+
+const RARITY_GLOW: Record<string, string> = {
+  COMMON: "0 0 40px rgba(161,161,170,0.4)",
+  UNCOMMON: "0 0 40px rgba(74,222,128,0.4)",
+  RARE: "0 0 40px rgba(96,165,250,0.4)",
+  EPIC: "0 0 50px rgba(192,132,252,0.5)",
+  LEGENDARY: "0 0 60px rgba(251,191,36,0.6)",
+};
 
 interface CrateOpenModalProps {
   crateDefinition: CrateDefinition | null;
@@ -21,6 +30,8 @@ export function CrateOpenModal({
 }: CrateOpenModalProps) {
   if (!crateDefinition) return null;
 
+  const glow = RARITY_GLOW[crateDefinition.rarity] ?? RARITY_GLOW.COMMON;
+
   return (
     <AnimatePresence>
       <motion.div
@@ -31,9 +42,10 @@ export function CrateOpenModal({
         onClick={result ? onClose : undefined}
       >
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
+          variants={popIn}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
           className="relative flex min-h-[400px] w-full max-w-md flex-col items-center justify-center gap-6 rounded-2xl border border-border bg-card p-8"
           onClick={(e) => e.stopPropagation()}
         >
@@ -44,6 +56,13 @@ export function CrateOpenModal({
                 animate={{
                   rotate: [0, -5, 5, -5, 5, 0],
                   scale: [1, 1.05, 0.95, 1.05, 0.95, 1],
+                  boxShadow: [
+                    glow,
+                    glow.replace("40px", "60px").replace("50px", "70px").replace("60px", "80px"),
+                    glow,
+                    glow.replace("40px", "60px").replace("50px", "70px").replace("60px", "80px"),
+                    glow,
+                  ],
                 }}
                 transition={{
                   duration: 0.5,
@@ -56,10 +75,17 @@ export function CrateOpenModal({
                   src={crateDefinition.imageUrl}
                   alt={crateDefinition.name}
                   fill
+                  unoptimized
                   className="object-cover"
                 />
               </motion.div>
-              <p className="text-sm text-muted-foreground">Opening crate...</p>
+              <motion.p
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-sm text-muted-foreground"
+              >
+                Opening crate...
+              </motion.p>
             </div>
           )}
 
