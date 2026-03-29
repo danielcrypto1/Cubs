@@ -7,6 +7,7 @@ import { NavLinks } from "./nav-links";
 import { MobileNav } from "./mobile-nav";
 import { WalletButton } from "./wallet-button";
 import { ThemeToggle } from "./theme-toggle";
+import { PawsDisplay } from "@/components/shared/paws-display";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -15,6 +16,9 @@ export function Header() {
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 20);
   });
+
+  // Mock balance — will be replaced with real hook
+  const pawsBalance = 12_450;
 
   return (
     <motion.header
@@ -39,6 +43,11 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* PAWS balance */}
+          <Link href="/staking" className="hidden sm:block">
+            <PawsDisplay balance={pawsBalance} size="sm" animated />
+          </Link>
+
           <ThemeToggle />
           <WalletButton />
           <MobileNav />

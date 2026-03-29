@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { requireAdmin } from "../../middleware/require-admin.js";
+import { resolveUser, requireAdmin } from "../../middleware/resolve-user.js";
 import { findAllCubs, findCubById, createCub } from "../../services/cub-service.js";
 
 export default async function cubRoutes(fastify: FastifyInstance) {
@@ -20,9 +20,9 @@ export default async function cubRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const cub = await findCubById(request.params.id);
       if (!cub) {
-        return reply.status(404).send({ error: "Cub not found" });
+        return reply.status(404).send({ error: "CUB_NOT_FOUND", message: "Cub not found" });
       }
-      return reply.send(cub);
+      return { data: cub };
     }
   );
 
@@ -33,14 +33,15 @@ export default async function cubRoutes(fastify: FastifyInstance) {
       description?: string;
       imageUrl?: string;
       metadataUri?: string;
+      rarity?: string;
       ownerId: string;
     };
   }>(
     "/",
-    { preHandler: [requireAdmin] },
+    { preHandler: [resolveUser, requireAdmin] },
     async (request, reply) => {
       const cub = await createCub(request.body);
-      return reply.status(201).send(cub);
+      return reply.status(201).send({ data: cub });
     }
   );
 }

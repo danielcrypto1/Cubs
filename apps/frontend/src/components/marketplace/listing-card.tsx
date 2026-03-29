@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,38 +41,40 @@ export function ListingCard({ listing, isOwn, onBuy, onCancel, actionLoading }: 
       layout
     >
       <Card className="overflow-hidden cubs-card-hover">
-        <div className="relative aspect-square overflow-hidden bg-muted cubs-image-zoom">
-          <Image
-            src={listing.imageUrl}
-            alt={listing.name}
-            fill
-            unoptimized
-            className="object-cover"
-          />
-          <Badge variant="outline" className="absolute left-2 top-2 bg-background/80 text-[10px] backdrop-blur-sm">
-            {TYPE_LABELS[listing.type] || listing.type}
-          </Badge>
-          {listing.quantity > 1 && (
-            <Badge variant="secondary" className="absolute right-2 top-2 text-[10px]">
-              x{listing.quantity}
+        <Link href={`/marketplace/${listing.id}`}>
+          <div className="relative aspect-square overflow-hidden bg-muted cubs-image-zoom">
+            <Image
+              src={listing.imageUrl}
+              alt={listing.name}
+              fill
+              unoptimized
+              className="object-cover"
+            />
+            <Badge variant="outline" className="absolute left-2 top-2 bg-background/80 text-[10px] backdrop-blur-sm">
+              {TYPE_LABELS[listing.type] || listing.type}
             </Badge>
-          )}
-        </div>
-
-        <CardHeader className="p-3 pb-1">
-          <div className="flex items-start justify-between gap-1">
-            <h3 className="truncate text-sm font-semibold">{listing.name}</h3>
-            <Badge
-              variant={RARITY_VARIANTS[listing.rarity] ?? "common"}
-              className="shrink-0 text-[9px]"
-            >
-              {listing.rarity}
-            </Badge>
+            {listing.quantity > 1 && (
+              <Badge variant="secondary" className="absolute right-2 top-2 text-[10px]">
+                x{listing.quantity}
+              </Badge>
+            )}
           </div>
-          {listing.category && (
-            <span className="text-[10px] text-muted-foreground">{listing.category}</span>
-          )}
-        </CardHeader>
+
+          <CardHeader className="p-3 pb-1">
+            <div className="flex items-start justify-between gap-1">
+              <h3 className="truncate text-sm font-semibold">{listing.name}</h3>
+              <Badge
+                variant={RARITY_VARIANTS[listing.rarity] ?? "common"}
+                className="shrink-0 text-[9px]"
+              >
+                {listing.rarity}
+              </Badge>
+            </div>
+            {listing.category && (
+              <span className="text-[10px] text-muted-foreground">{listing.category}</span>
+            )}
+          </CardHeader>
+        </Link>
 
         <CardContent className="space-y-2 p-3 pt-1">
           <div className="flex items-center justify-between">

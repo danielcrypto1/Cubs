@@ -56,7 +56,7 @@ export function CubViewer({ cub }: CubViewerProps) {
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Traits
           </h3>
-          <TraitList traits={cub.traits || []} />
+          <TraitList equippedTraits={cub.equippedTraits || []} />
         </CardContent>
       </Card>
     </motion.div>

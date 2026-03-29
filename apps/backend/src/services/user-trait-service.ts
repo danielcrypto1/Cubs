@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import type { Prisma } from "@prisma/client";
 
 export async function findUserTraits(walletAddress: string) {
   return prisma.userTrait.findMany({
@@ -8,8 +9,12 @@ export async function findUserTraits(walletAddress: string) {
   });
 }
 
-export async function validateTraitOwnership(walletAddress: string, traitDefinitionId: string): Promise<boolean> {
-  const userTrait = await prisma.userTrait.findUnique({
+export async function validateTraitOwnership(
+  walletAddress: string,
+  traitDefinitionId: string,
+  client: Prisma.TransactionClient | typeof prisma = prisma,
+): Promise<boolean> {
+  const userTrait = await client.userTrait.findUnique({
     where: {
       walletAddress_traitDefinitionId: {
         walletAddress: walletAddress.toLowerCase(),
@@ -20,11 +25,16 @@ export async function validateTraitOwnership(walletAddress: string, traitDefinit
   return userTrait !== null && userTrait.quantity > 0;
 }
 
-export async function decrementUserTrait(walletAddress: string, traitDefinitionId: string) {
-  const userTrait = await prisma.userTrait.findUnique({
+export async function decrementUserTrait(
+  walletAddress: string,
+  traitDefinitionId: string,
+  client: Prisma.TransactionClient | typeof prisma = prisma,
+) {
+  const addr = walletAddress.toLowerCase();
+  const userTrait = await client.userTrait.findUnique({
     where: {
       walletAddress_traitDefinitionId: {
-        walletAddress: walletAddress.toLowerCase(),
+        walletAddress: addr,
         traitDefinitionId,
       },
     },
@@ -35,12 +45,12 @@ export async function decrementUserTrait(walletAddress: string, traitDefinitionI
   }
 
   if (userTrait.quantity === 1) {
-    return prisma.userTrait.delete({
+    return client.userTrait.delete({
       where: { id: userTrait.id },
     });
   }
 
-  return prisma.userTrait.update({
+  return client.userTrait.update({
     where: { id: userTrait.id },
     data: { quantity: { decrement: 1 } },
   });

@@ -294,8 +294,14 @@ const td = (
   id: string, name: string, category: TraitCategory, rarity: TraitRarity, color: string,
 ): TraitDefinition => ({
   id, name, category, rarity,
+  layer: 0,
+  rarityWeight: 0.2,
   maxSupply: 1000, currentSupply: 200,
   imageUrl: `https://placehold.co/1024x1024/${color}/ffffff?text=${encodeURIComponent(name)}`,
+  boostType: "NONE",
+  boostValue: 0,
+  isFullBody: false,
+  isActive: true,
   createdAt: "2026-01-01T00:00:00Z",
 });
 

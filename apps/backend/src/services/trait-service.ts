@@ -1,23 +1,33 @@
 import { prisma } from "../lib/prisma.js";
 
 export async function findTraitsByCubId(cubId: string) {
-  return prisma.trait.findMany({
+  return prisma.cubEquippedTrait.findMany({
     where: { cubId },
-    orderBy: { displayOrder: "asc" },
+    include: { traitDefinition: true },
+    orderBy: { slotCategory: "asc" },
   });
 }
 
 export async function getDistinctTraitTypes() {
-  const traits = await prisma.trait.findMany({
-    select: { traitType: true, traitValue: true },
-    distinct: ["traitType", "traitValue"],
-    orderBy: [{ traitType: "asc" }, { traitValue: "asc" }],
+  const equipped = await prisma.cubEquippedTrait.findMany({
+    include: { traitDefinition: { select: { category: true, name: true } } },
+    distinct: ["slotCategory", "traitDefinitionId"],
   });
 
   const grouped: Record<string, string[]> = {};
-  for (const trait of traits) {
-    if (!grouped[trait.traitType]) grouped[trait.traitType] = [];
-    grouped[trait.traitType].push(trait.traitValue);
+  for (const eq of equipped) {
+    const cat = eq.traitDefinition.category;
+    if (!grouped[cat]) grouped[cat] = [];
+    const name = eq.traitDefinition.name;
+    if (!grouped[cat].includes(name)) {
+      grouped[cat].push(name);
+    }
   }
+
+  // Sort values within each category
+  for (const cat of Object.keys(grouped)) {
+    grouped[cat].sort();
+  }
+
   return grouped;
 }

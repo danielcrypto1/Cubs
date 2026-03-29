@@ -1,18 +1,34 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import { RewardReveal } from "./reward-reveal";
-import { popIn } from "@/lib/animations";
+import {
+  crateShake,
+  crateGlow,
+  crateFlash,
+  CRATE_STAGE_TIMING,
+} from "@/lib/animations";
 import type { CrateDefinition, CrateOpenResult } from "@/types";
 
-const RARITY_GLOW: Record<string, string> = {
-  COMMON: "0 0 40px rgba(161,161,170,0.4)",
-  UNCOMMON: "0 0 40px rgba(74,222,128,0.4)",
-  RARE: "0 0 40px rgba(96,165,250,0.4)",
-  EPIC: "0 0 50px rgba(192,132,252,0.5)",
-  LEGENDARY: "0 0 60px rgba(251,191,36,0.6)",
+type AnimStage = "idle" | "shake" | "glow" | "flash" | "reveal";
+
+const RARITY_PARTICLES: Record<string, string> = {
+  COMMON: "bg-zinc-400",
+  UNCOMMON: "bg-green-400",
+  RARE: "bg-blue-400",
+  EPIC: "bg-purple-400",
+  LEGENDARY: "bg-amber-400",
+};
+
+const RARITY_RING: Record<string, string> = {
+  COMMON: "ring-zinc-400/40",
+  UNCOMMON: "ring-green-400/40",
+  RARE: "ring-blue-400/40",
+  EPIC: "ring-purple-400/50",
+  LEGENDARY: "ring-amber-400/60",
 };
 
 interface CrateOpenModalProps {
@@ -20,6 +36,9 @@ interface CrateOpenModalProps {
   isOpening: boolean;
   result: CrateOpenResult | null;
   onClose: () => void;
+  onEquip?: (result: CrateOpenResult) => void;
+  onSell?: (result: CrateOpenResult) => void;
+  onBurn?: (result: CrateOpenResult) => void;
 }
 
 export function CrateOpenModal({
@@ -27,10 +46,57 @@ export function CrateOpenModal({
   isOpening,
   result,
   onClose,
+  onEquip,
+  onSell,
+  onBurn,
 }: CrateOpenModalProps) {
-  if (!crateDefinition) return null;
+  const [stage, setStage] = useState<AnimStage>("idle");
+  const [showParticles, setShowParticles] = useState(false);
 
-  const glow = RARITY_GLOW[crateDefinition.rarity] ?? RARITY_GLOW.COMMON;
+  const rarity = crateDefinition?.rarity ?? "COMMON";
+  const timing = CRATE_STAGE_TIMING[rarity] ?? CRATE_STAGE_TIMING.COMMON;
+  const glowKeyframes = crateGlow[rarity.toLowerCase() as keyof typeof crateGlow] ?? crateGlow.common;
+
+  // Drive animation stages when opening starts
+  useEffect(() => {
+    if (!isOpening || !crateDefinition) return;
+
+    setStage("idle");
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // Stage 1: Start shaking
+    timers.push(setTimeout(() => setStage("shake"), 100));
+
+    // Stage 2: Glow builds
+    timers.push(setTimeout(() => {
+      setStage("glow");
+      setShowParticles(true);
+    }, timing.shake));
+
+    // Stage 3: Flash
+    timers.push(setTimeout(() => setStage("flash"), timing.shake + timing.glow));
+
+    return () => timers.forEach(clearTimeout);
+  }, [isOpening, crateDefinition, timing]);
+
+  // Transition to reveal when result arrives and flash is done
+  useEffect(() => {
+    if (!result) return;
+    const delay = stage === "flash" ? timing.flash : 200;
+    const t = setTimeout(() => {
+      setStage("reveal");
+      setShowParticles(false);
+    }, delay);
+    return () => clearTimeout(t);
+  }, [result, stage, timing.flash]);
+
+  const handleClose = useCallback(() => {
+    setStage("idle");
+    setShowParticles(false);
+    onClose();
+  }, [onClose]);
+
+  if (!crateDefinition) return null;
 
   return (
     <AnimatePresence>
@@ -38,39 +104,80 @@ export function CrateOpenModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-        onClick={result ? onClose : undefined}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+        onClick={stage === "reveal" ? handleClose : undefined}
       >
+        {/* Close button */}
+        {stage === "reveal" && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            onClick={handleClose}
+            className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white/60 transition-colors hover:bg-white/20 hover:text-white"
+          >
+            <X className="h-5 w-5" />
+          </motion.button>
+        )}
+
         <motion.div
-          variants={popIn}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-          className="relative flex min-h-[400px] w-full max-w-md flex-col items-center justify-center gap-6 rounded-2xl border border-border bg-card p-8"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="relative flex min-h-[480px] w-full max-w-lg flex-col items-center justify-center gap-6 p-8"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Opening animation */}
-          {isOpening && !result && (
-            <div className="flex flex-col items-center gap-4">
+          {/* ── Crate animation (idle → shake → glow → flash) ── */}
+          {stage !== "reveal" && (
+            <div className="relative flex flex-col items-center gap-6">
+              {/* Particle ring */}
+              {showParticles && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{
+                        opacity: [0, 1, 0],
+                        scale: [0.5, 1.5, 0.5],
+                        x: Math.cos((i * Math.PI * 2) / 12) * 120,
+                        y: Math.sin((i * Math.PI * 2) / 12) * 120,
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        delay: i * 0.1,
+                        ease: "easeInOut",
+                      }}
+                      className={`absolute h-2 w-2 rounded-full ${RARITY_PARTICLES[rarity] ?? RARITY_PARTICLES.COMMON}`}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Crate image */}
               <motion.div
-                animate={{
-                  rotate: [0, -5, 5, -5, 5, 0],
-                  scale: [1, 1.05, 0.95, 1.05, 0.95, 1],
-                  boxShadow: [
-                    glow,
-                    glow.replace("40px", "60px").replace("50px", "70px").replace("60px", "80px"),
-                    glow,
-                    glow.replace("40px", "60px").replace("50px", "70px").replace("60px", "80px"),
-                    glow,
-                  ],
-                }}
-                transition={{
-                  duration: 0.5,
-                  repeat: Infinity,
-                  repeatType: "loop",
-                }}
-                className="relative h-48 w-48 overflow-hidden rounded-xl"
+                variants={crateShake}
+                initial="idle"
+                animate={
+                  stage === "shake"
+                    ? "shaking"
+                    : stage === "glow"
+                      ? "shaking_intense"
+                      : "idle"
+                }
+                className={`relative h-52 w-52 overflow-hidden rounded-2xl ring-4 ${RARITY_RING[rarity] ?? RARITY_RING.COMMON}`}
               >
+                {/* Glow overlay */}
+                {(stage === "glow" || stage === "flash") && (
+                  <motion.div
+                    animate={glowKeyframes}
+                    transition={{ duration: timing.glow / 1000, ease: "easeIn" }}
+                    className="absolute inset-0 z-10 rounded-2xl"
+                  />
+                )}
+
                 <Image
                   src={crateDefinition.imageUrl}
                   alt={crateDefinition.name}
@@ -79,30 +186,40 @@ export function CrateOpenModal({
                   className="object-cover"
                 />
               </motion.div>
+
+              {/* Stage label */}
               <motion.p
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="text-sm text-muted-foreground"
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+                className="text-sm font-medium text-muted-foreground"
               >
-                Opening crate...
+                {stage === "idle" && "Preparing crate..."}
+                {stage === "shake" && "Something's stirring..."}
+                {stage === "glow" && "Energy building..."}
+                {stage === "flash" && "Here it comes!"}
               </motion.p>
             </div>
           )}
 
-          {/* Reward reveal */}
-          {result && <RewardReveal result={result} />}
-
-          {/* Close button (only after reveal) */}
-          {result && (
+          {/* ── White flash overlay ── */}
+          {stage === "flash" && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Button variant="outline" onClick={onClose}>
-                Close
-              </Button>
-            </motion.div>
+              variants={crateFlash}
+              initial="hidden"
+              animate="flash"
+              className="pointer-events-none absolute inset-0 z-20 rounded-3xl bg-white"
+            />
+          )}
+
+          {/* ── Reward reveal ── */}
+          {stage === "reveal" && result && (
+            <RewardReveal
+              result={result}
+              rarity={rarity}
+              onEquip={onEquip ? () => onEquip(result) : undefined}
+              onSell={onSell ? () => onSell(result) : undefined}
+              onBurn={onBurn ? () => onBurn(result) : undefined}
+            />
           )}
         </motion.div>
       </motion.div>

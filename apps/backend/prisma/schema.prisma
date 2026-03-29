@@ -1,11 +1,15 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgcrypto]
 }
+
+// ─── Enums ───────────────────────────────────────────────
 
 enum Role {
   USER
@@ -51,42 +55,137 @@ enum AssetType {
   CRATE
 }
 
-model User {
-  id            String   @id @default(cuid())
-  walletAddress String   @unique @map("wallet_address")
-  role          Role     @default(USER)
-  displayName   String?  @map("display_name")
-  avatarUrl     String?  @map("avatar_url")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+enum BoostType {
+  NONE
+  PAWS_MULTIPLIER
+  PAWS_FLAT
+  LUCK
+}
 
-  cubs             Cub[]
-  listings         MarketplaceListing[] @relation("SellerListings")
-  purchases        MarketplaceListing[] @relation("BuyerListings")
-  stakingPositions StakingPosition[]
+enum CrateType {
+  STANDARD
+  PREMIUM
+  GENESIS
+  EVENT
+}
+
+enum PriceType {
+  PAWS
+  ETH
+  USDT
+}
+
+enum PawsReason {
+  DAILY_CLAIM
+  STAKING_REWARD
+  CRATE_PURCHASE
+  CRATE_REFUND
+  MARKETPLACE_BUY
+  MARKETPLACE_SELL
+  MARKETPLACE_FEE
+  TRAIT_BURN
+  TRAIT_BURN_FEE
+  ACHIEVEMENT
+  EVENT_REWARD
+  GAME_REWARD
+  ADMIN_GRANT
+  ADMIN_DEDUCT
+  CRATE_REWARD
+}
+
+enum BadgeCategory {
+  COLLECTOR
+  TRADER
+  SOCIAL
+  EVENT
+  MILESTONE
+}
+
+enum CubRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum RewardType {
+  TRAIT
+  PAWS
+  CUB
+  NFT
+}
+
+enum QueueJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DropStatus {
+  DRAFT
+  SCHEDULED
+  LIVE
+  ENDED
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  walletAddress   String    @unique @map("wallet_address")
+  discordId       String?   @unique @map("discord_id")
+  discordUsername  String?   @map("discord_username")
+  role            Role      @default(USER)
+  displayName     String?   @map("display_name")
+  avatarUrl       String?   @map("avatar_url")
+  linkedAt        DateTime? @map("linked_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  cubs              Cub[]
+  listings          MarketplaceListing[] @relation("SellerListings")
+  purchases         MarketplaceListing[] @relation("BuyerListings")
+  offersPlaced      MarketplaceOffer[]   @relation("BuyerOffers")
+  tradesProposed    MarketplaceTrade[]   @relation("TradeProposer")
+  tradesReceived    MarketplaceTrade[]   @relation("TradeReceiver")
+  stakingPositions  StakingPosition[]
+  pawsTransactions  PawsTransaction[]
+  userBadges        UserBadge[]
+  auditLogs         AuditLog[]
 
   @@map("users")
 }
 
 model Cub {
-  id          String   @id @default(cuid())
-  tokenId     Int      @unique @map("token_id")
+  id          String    @id @default(cuid())
+  tokenId     Int       @unique @map("token_id")
   name        String?
   description String?
-  imageUrl    String?  @map("image_url")
-  metadataUri String?  @map("metadata_uri")
-  ownerId     String   @map("owner_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  imageUrl    String?   @map("image_url")
+  metadataUri String?   @map("metadata_uri")
+  rarity       CubRarity @default(COMMON)
+  rarityScore  Float     @default(0) @map("rarity_score")
+  version      Int       @default(1)
+  ownerId      String    @map("owner_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  owner    User                 @relation(fields: [ownerId], references: [id])
-  traits   Trait[]
-  listings MarketplaceListing[]
-  staking  StakingPosition?
+  owner          User                 @relation(fields: [ownerId], references: [id])
+  traits         Trait[]              // @deprecated — legacy string-pair storage, do NOT use in new code
+  equippedTraits CubEquippedTrait[]
+  versions       CubVersion[]
+  listings       MarketplaceListing[]
+  staking        StakingPosition?
+  crateRewards   CrateReward[]
 
   @@map("cubs")
 }
 
+// @deprecated — Legacy trait storage (string traitType/traitValue pairs).
+// Retained ONLY for migration reads. All writes MUST use CubEquippedTrait.
+// Will be dropped after data migration to CubEquippedTrait is complete.
 model Trait {
   id           String @id @default(cuid())
   cubId        String @map("cub_id")
@@ -100,61 +199,68 @@ model Trait {
   @@map("traits")
 }
 
-model MarketplaceListing {
+// ─── Cub Composition System ─────────────────────────────
+
+// Each row = one trait slot equipped on a cub, linked to a TraitDefinition.
+// Replaces the old Trait model's traitType/traitValue string pairs.
+model CubEquippedTrait {
   id                String        @id @default(cuid())
-  assetType         AssetType     @map("asset_type")
-  cubId             String?       @map("cub_id")
-  traitDefinitionId String?       @map("trait_definition_id")
-  crateDefinitionId String?       @map("crate_definition_id")
-  quantity          Int           @default(1)
-  sellerId          String        @map("seller_id")
-  buyerId           String?       @map("buyer_id")
-  priceWei          String        @map("price_wei")
-  status            ListingStatus @default(ACTIVE)
-  txHash            String?       @map("tx_hash")
-  listedAt          DateTime      @default(now()) @map("listed_at")
-  soldAt            DateTime?     @map("sold_at")
-  cancelledAt       DateTime?     @map("cancelled_at")
+  cubId             String        @map("cub_id")
+  slotCategory      TraitCategory @map("slot_category")
+  traitDefinitionId String        @map("trait_definition_id")
+  equippedAt        DateTime      @default(now()) @map("equipped_at")
 
-  cub             Cub?             @relation(fields: [cubId], references: [id])
-  traitDefinition TraitDefinition? @relation(fields: [traitDefinitionId], references: [id])
-  crateDefinition CrateDefinition? @relation(fields: [crateDefinitionId], references: [id])
-  seller          User             @relation("SellerListings", fields: [sellerId], references: [id])
-  buyer           User?            @relation("BuyerListings", fields: [buyerId], references: [id])
+  cub             Cub             @relation(fields: [cubId], references: [id], onDelete: Cascade)
+  traitDefinition TraitDefinition @relation(fields: [traitDefinitionId], references: [id])
 
-  @@index([status, assetType])
-  @@index([sellerId, status])
-  @@map("marketplace_listings")
+  @@unique([cubId, slotCategory])
+  @@index([traitDefinitionId])
+  @@map("cub_equipped_traits")
 }
 
-model MarketplaceSale {
-  id             String   @id @default(cuid())
-  listingId      String   @unique @map("listing_id")
-  sellerId       String   @map("seller_id")
-  buyerId        String   @map("buyer_id")
-  priceWei       String   @map("price_wei")
-  platformFeeWei String   @default("0") @map("platform_fee_wei")
-  royaltyFeeWei  String   @default("0") @map("royalty_fee_wei")
-  txHash         String?  @map("tx_hash")
-  completedAt    DateTime @default(now()) @map("completed_at")
+// Immutable snapshot of a cub's composition at a point in time.
+// Created every time the editor saves — provides full render history.
+model CubVersion {
+  id          String   @id @default(cuid())
+  cubId       String   @map("cub_id")
+  version       Int
+  imageUrl      String   @map("image_url")
+  metadataUri   String   @map("metadata_uri")
+  traitSnapshot Json     @map("trait_snapshot") // Array of { slotCategory, traitDefinitionId, name, imageUrl }
+  rarityScore   Float    @default(0) @map("rarity_score")
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  @@index([sellerId])
-  @@index([buyerId])
-  @@map("marketplace_sales")
+  cub Cub @relation(fields: [cubId], references: [id], onDelete: Cascade)
+
+  @@unique([cubId, version])
+  @@index([cubId, createdAt(sort: Desc)])
+  @@map("cub_versions")
 }
+
+// ─── Trait Definitions ──────────────────────────────────
 
 model TraitDefinition {
   id            String        @id @default(cuid())
   name          String
   category      TraitCategory
+  layer         Int           @default(0)
   rarity        TraitRarity
+  rarityWeight  Float         @default(0) @map("rarity_weight")
   maxSupply     Int           @map("max_supply")
   currentSupply Int           @default(0) @map("current_supply")
   imageUrl      String        @map("image_url")
+  boostType     BoostType     @default(NONE) @map("boost_type")
+  boostValue    Float         @default(0) @map("boost_value")
+  isFullBody    Boolean       @default(false) @map("is_full_body")
+  isActive      Boolean       @default(true) @map("is_active")
   createdAt     DateTime      @default(now()) @map("created_at")
 
-  userTraits UserTrait[]
-  listings   MarketplaceListing[]
+  userTraits     UserTrait[]
+  equippedOn     CubEquippedTrait[]
+  listings       MarketplaceListing[]
+  lootEntries    LootTableEntry[]
+  crateRewards   CrateReward[]
+  dropTraits     DropTrait[]
 
   @@unique([name, category])
   @@map("trait_definitions")
@@ -174,18 +280,34 @@ model UserTrait {
   @@map("user_traits")
 }
 
+// ─── Crate System ───────────────────────────────────────
+
 model CrateDefinition {
-  id          String      @id @default(cuid())
-  name        String      @unique
-  rarity      TraitRarity
-  description String?
-  imageUrl    String      @map("image_url")
-  createdAt   DateTime    @default(now()) @map("created_at")
+  id            String      @id @default(cuid())
+  name          String      @unique
+  type          CrateType   @default(STANDARD)
+  rarity        TraitRarity
+  description   String?
+  imageUrl      String      @map("image_url")
+  priceType     PriceType   @default(PAWS) @map("price_type")
+  priceAmount   String      @default("0") @map("price_amount")
+  maxSupply     Int?        @map("max_supply")
+  currentSupply Int         @default(0) @map("current_supply")
+  activeFrom    DateTime?   @map("active_from")
+  activeUntil   DateTime?   @map("active_until")
+  isBase        Boolean     @default(false) @map("is_base")
+  dropId        String?     @map("drop_id")
+  isActive      Boolean     @default(true) @map("is_active")
+  createdAt     DateTime    @default(now()) @map("created_at")
 
-  userCrates UserCrate[]
-  lootTable  LootTableEntry[]
-  listings   MarketplaceListing[]
+  drop         Drop?            @relation(fields: [dropId], references: [id])
+  userCrates   UserCrate[]
+  lootTable    LootTableEntry[]
+  rewards      CrateReward[]
+  listings     MarketplaceListing[]
+  openStats    CrateOpenStats[]
 
+  @@index([dropId])
   @@map("crate_definitions")
 }
 
@@ -202,30 +324,381 @@ model UserCrate {
   @@map("user_crates")
 }
 
+// Legacy loot table — rarity-pool based. Retained for existing crate definitions.
 model LootTableEntry {
-  id                String          @id @default(cuid())
-  crateDefinitionId String          @map("crate_definition_id")
-  traitRarity       TraitRarity     @map("trait_rarity")
+  id                String           @id @default(cuid())
+  crateDefinitionId String           @map("crate_definition_id")
+  traitDefinitionId String?          @map("trait_definition_id")
+  traitRarity       TraitRarity?     @map("trait_rarity")
   probability       Float
+  createdAt         DateTime         @default(now()) @map("created_at")
 
-  crateDefinition CrateDefinition @relation(fields: [crateDefinitionId], references: [id])
+  crateDefinition CrateDefinition  @relation(fields: [crateDefinitionId], references: [id], onDelete: Cascade)
+  traitDefinition TraitDefinition? @relation(fields: [traitDefinitionId], references: [id])
 
-  @@unique([crateDefinitionId, traitRarity])
   @@map("loot_table_entries")
 }
 
+// Polymorphic reward entries for crates.
+// Each row is one possible reward with a weight. Supports TRAIT, PAWS, CUB, and NFT rewards.
+// Only one reference field set per row: traitDefinitionId | cubId | contractAddress+tokenId
+model CrateReward {
+  id                String      @id @default(cuid())
+  crateDefinitionId String      @map("crate_definition_id")
+  rewardType        RewardType  @map("reward_type")
+  weight            Float                                // relative weight (not percentage)
+
+  // TRAIT reward fields
+  traitDefinitionId String?     @map("trait_definition_id")
+  traitRarity       TraitRarity? @map("trait_rarity")    // pick random trait at this rarity if traitDefinitionId is null
+
+  // PAWS reward fields
+  pawsAmount        Int?        @map("paws_amount")
+  pawsMin           Int?        @map("paws_min")         // random range: min-max
+  pawsMax           Int?        @map("paws_max")
+
+  // CUB reward fields (specific pre-minted cub, or random via cubRarity)
+  cubId             String?     @map("cub_id")
+  cubRarity         CubRarity?  @map("cub_rarity")
+
+  // NFT reward fields (external NFT grant — future)
+  contractAddress   String?     @map("contract_address")
+  tokenId           String?     @map("token_id")
+  nftMetadata       Json?       @map("nft_metadata")
+
+  isActive          Boolean     @default(true) @map("is_active")
+  createdAt         DateTime    @default(now()) @map("created_at")
+
+  crateDefinition CrateDefinition  @relation(fields: [crateDefinitionId], references: [id], onDelete: Cascade)
+  traitDefinition TraitDefinition? @relation(fields: [traitDefinitionId], references: [id])
+  cub             Cub?             @relation(fields: [cubId], references: [id])
+
+  @@index([crateDefinitionId, isActive])
+  @@map("crate_rewards")
+}
+
+// ─── Transaction Intents (idempotency + anti-replay) ───
+
+enum IntentType {
+  CRATE_OPEN
+  CRATE_PURCHASE
+  STAKING_CLAIM
+  MARKETPLACE_BUY
+  MARKETPLACE_OFFER_ACCEPT
+  MARKETPLACE_TRADE_ACCEPT
+  FORGE_SAVE
+}
+
+enum OfferStatus {
+  ACTIVE
+  ACCEPTED
+  CANCELLED
+  EXPIRED
+}
+
+enum TradeStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+enum IntentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model TransactionIntent {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  type        IntentType
+  status      IntentStatus @default(PENDING)
+  referenceId String?      @map("reference_id")   // e.g. crateDefinitionId, listingId
+  result      Json?                                // outcome data (reward, claim amount, etc.)
+  error       String?                              // failure reason
+  expiresAt   DateTime     @map("expires_at")      // auto-expire stale PENDING intents
+  lockedUntil DateTime     @map("locked_until")    // hard lock — no new intent allowed until this time
+  createdAt   DateTime     @default(now()) @map("created_at")
+  completedAt DateTime?    @map("completed_at")
+
+  @@index([userId, type, status])
+  @@index([status, expiresAt])
+  @@map("transaction_intents")
+}
+
+// ─── Crate Open Stats (pity system tracking) ───────────
+
+model CrateOpenStats {
+  id                       String @id @default(cuid())
+  userId                   String @map("user_id")
+  crateDefinitionId        String @map("crate_definition_id")
+  totalOpens               Int    @default(0) @map("total_opens")
+  opensSinceLastHighRarity Int    @default(0) @map("opens_since_last_high_rarity")
+
+  crateDefinition CrateDefinition @relation(fields: [crateDefinitionId], references: [id])
+
+  @@unique([userId, crateDefinitionId])
+  @@map("crate_open_stats")
+}
+
+// ─── Marketplace ────────────────────────────────────────
+
+model MarketplaceListing {
+  id                String        @id @default(cuid())
+  assetType         AssetType     @map("asset_type")
+  cubId             String?       @map("cub_id")
+  traitDefinitionId String?       @map("trait_definition_id")
+  crateDefinitionId String?       @map("crate_definition_id")
+  quantity          Int           @default(1)
+  sellerId          String        @map("seller_id")
+  buyerId           String?       @map("buyer_id")
+  priceType         PriceType     @default(ETH) @map("price_type")
+  priceAmount       String        @map("price_amount")
+  status            ListingStatus @default(ACTIVE)
+  txHash            String?       @map("tx_hash")
+  listedAt          DateTime      @default(now()) @map("listed_at")
+  expiresAt         DateTime?     @map("expires_at")
+  soldAt            DateTime?     @map("sold_at")
+  cancelledAt       DateTime?     @map("cancelled_at")
+
+  cub             Cub?             @relation(fields: [cubId], references: [id])
+  traitDefinition TraitDefinition? @relation(fields: [traitDefinitionId], references: [id])
+  crateDefinition CrateDefinition? @relation(fields: [crateDefinitionId], references: [id])
+  seller          User             @relation("SellerListings", fields: [sellerId], references: [id])
+  buyer           User?            @relation("BuyerListings", fields: [buyerId], references: [id])
+
+  @@index([status, assetType])
+  @@index([sellerId, status])
+  @@map("marketplace_listings")
+}
+
+model MarketplaceSale {
+  id          String   @id @default(cuid())
+  listingId   String   @unique @map("listing_id")
+  sellerId    String   @map("seller_id")
+  buyerId     String   @map("buyer_id")
+  priceType   PriceType @map("price_type")
+  priceAmount String   @map("price_amount")
+  platformFee String   @default("0") @map("platform_fee")
+  royaltyFee  String   @default("0") @map("royalty_fee")
+  pawsBurned  String   @default("0") @map("paws_burned")
+  txHash      String?  @map("tx_hash")
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@map("marketplace_sales")
+}
+
+// ─── Marketplace Offers (bidding system) ─────────────────
+
+model MarketplaceOffer {
+  id                String        @id @default(cuid())
+  listingId         String?       @map("listing_id")
+  assetType         AssetType     @map("asset_type")
+  cubId             String?       @map("cub_id")
+  traitDefinitionId String?       @map("trait_definition_id")
+  crateDefinitionId String?       @map("crate_definition_id")
+  quantity          Int           @default(1)
+  buyerId           String        @map("buyer_id")
+  priceType         PriceType     @default(PAWS) @map("price_type")
+  priceAmount       String        @map("price_amount")
+  status            OfferStatus   @default(ACTIVE)
+  expiresAt         DateTime?     @map("expires_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  acceptedAt        DateTime?     @map("accepted_at")
+  cancelledAt       DateTime?     @map("cancelled_at")
+
+  buyer User @relation("BuyerOffers", fields: [buyerId], references: [id])
+
+  @@index([listingId, status])
+  @@index([buyerId, status])
+  @@index([assetType, status])
+  @@index([status, expiresAt])
+  @@map("marketplace_offers")
+}
+
+// ─── Marketplace Trades (player-to-player swaps) ────────
+
+model MarketplaceTrade {
+  id              String      @id @default(cuid())
+  proposerId      String      @map("proposer_id")
+  receiverId      String      @map("receiver_id")
+  offeredAssets   Json        @map("offered_assets")   // Array<{ type, id, quantity }>
+  requestedAssets Json        @map("requested_assets") // Array<{ type, id, quantity }>
+  status          TradeStatus @default(PENDING)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  respondedAt     DateTime?   @map("responded_at")
+
+  proposer User @relation("TradeProposer", fields: [proposerId], references: [id])
+  receiver User @relation("TradeReceiver", fields: [receiverId], references: [id])
+
+  @@index([proposerId, status])
+  @@index([receiverId, status])
+  @@map("marketplace_trades")
+}
+
+// ─── Staking (passive PAWS generation with snapshots) ───
+
 model StakingPosition {
-  id             String    @id @default(cuid())
-  cubId          String    @unique @map("cub_id")
-  userId         String    @map("user_id")
-  stakedAt       DateTime  @default(now()) @map("staked_at")
-  unstakedAt     DateTime? @map("unstaked_at")
-  rewardsClaimed String    @default("0") @map("rewards_claimed")
-  txHash         String?   @map("tx_hash")
-  isActive       Boolean   @default(true) @map("is_active")
+  id                String   @id @default(cuid())
+  cubId             String   @unique @map("cub_id")
+  userId            String   @map("user_id")
+  lastClaimedAt     DateTime @default(now()) @map("last_claimed_at")
+  isActive          Boolean  @default(true) @map("is_active")
+
+  // Snapshots: baked-in rates at time of last snapshot update.
+  // Recalculated on: trait equip/unequip, cub transfer, marketplace list/delist.
+  rateSnapshot      Float    @default(0) @map("rate_snapshot")      // PAWS/day after rarity multiplier
+  flatBonusSnapshot Float    @default(0) @map("flat_bonus_snapshot") // flat PAWS/day from traits
+
+  snapshotAt        DateTime @default(now()) @map("snapshot_at")
+  createdAt         DateTime @default(now()) @map("created_at")
 
   cub  Cub  @relation(fields: [cubId], references: [id])
   user User @relation(fields: [userId], references: [id])
 
   @@map("staking_positions")
+}
+
+// ─── PAWS Ledger (source of truth — no stored balance) ──
+
+model PawsTransaction {
+  id          String     @id @default(cuid())
+  userId      String     @map("user_id")
+  amount      Int
+  reason      PawsReason
+  referenceId String?    @map("reference_id")
+  note        String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([reason, createdAt(sort: Desc)])
+  @@map("paws_transactions")
+}
+
+// ─── Badges / Achievements ──────────────────────────────
+
+model Badge {
+  id               String        @id @default(cuid())
+  name             String        @unique
+  description      String
+  imageUrl         String        @map("image_url")
+  category         BadgeCategory
+  requirementType  String        @map("requirement_type")
+  requirementValue Int           @map("requirement_value")
+  pawsReward       Int           @default(0) @map("paws_reward")
+  isActive         Boolean       @default(true) @map("is_active")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  badgeId    String   @map("badge_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  badge Badge @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
+}
+
+// ─── Admin Audit Log ────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String   @map("admin_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  changes    Json     @default("{}")
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  admin User @relation(fields: [adminId], references: [id])
+
+  @@index([adminId, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
+
+// ─── Economy Config (single-row, versioned) ─────────────
+
+model EconomyConfig {
+  id                     Int      @id @default(1)
+  version                Int      @default(1)
+  basePawsRate           Int      @default(100) @map("base_paws_rate")
+  rarityMultipliers      Json     @default("{\"COMMON\":1.0,\"UNCOMMON\":1.25,\"RARE\":1.5,\"EPIC\":2.0,\"LEGENDARY\":3.0}") @map("rarity_multipliers")
+  marketplaceFeeBps      Int      @default(250) @map("marketplace_fee_bps")
+  marketplaceRoyaltyBps  Int      @default(500) @map("marketplace_royalty_bps")
+  pawsTradeBurnPct       Int      @default(10) @map("paws_trade_burn_pct")
+  traitBurnReturnMin     Int      @default(30) @map("trait_burn_return_min")
+  traitBurnReturnMax     Int      @default(60) @map("trait_burn_return_max")
+  dailyClaimAmount       Int      @default(50) @map("daily_claim_amount")
+  dailyClaimCooldownHrs  Int      @default(24) @map("daily_claim_cooldown_hrs")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  updatedBy              String?  @map("updated_by")
+
+  @@map("economy_config")
+}
+
+// ─── Economy Stats (daily aggregates) ──────────────────
+
+model EconomyStatsDaily {
+  id              String   @id @default(cuid())
+  date            DateTime @db.Date
+  totalPawsEarned Int      @default(0) @map("total_paws_earned")
+  totalPawsSpent  Int      @default(0) @map("total_paws_spent")
+  cratesOpened    Int      @default(0) @map("crates_opened")
+  traitsMinted    Int      @default(0) @map("traits_minted")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([date])
+  @@map("economy_stats_daily")
+}
+
+// ─── Drop System ───────────────────────────────────────
+
+model Drop {
+  id           String     @id @default(cuid())
+  name         String
+  description  String?
+  bannerImage  String?    @map("banner_image")
+  themeColor   String?    @map("theme_color")
+  status       DropStatus @default(DRAFT)
+  startTime    DateTime?  @map("start_time")
+  endTime      DateTime?  @map("end_time")
+  isFeatured   Boolean    @default(false) @map("is_featured")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  crates     CrateDefinition[]
+  dropTraits DropTrait[]
+
+  @@index([status, startTime])
+  @@index([isFeatured, status])
+  @@map("drops")
+}
+
+// Join table for Drop ↔ TraitDefinition (many-to-many)
+model DropTrait {
+  id                String @id @default(cuid())
+  dropId            String @map("drop_id")
+  traitDefinitionId String @map("trait_definition_id")
+
+  drop            Drop            @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  traitDefinition TraitDefinition @relation(fields: [traitDefinitionId], references: [id])
+
+  @@unique([dropId, traitDefinitionId])
+  @@map("drop_traits")
 }

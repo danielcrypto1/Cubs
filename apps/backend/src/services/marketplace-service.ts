@@ -1,10 +1,15 @@
 import { prisma } from "../lib/prisma.js";
+import { economyEvents } from "../lib/economy-events.js";
 import { getOrSetCached, invalidateMarketplaceCache, buildCacheKey } from "./marketplace-cache.js";
-import type { AssetType, Prisma } from "@prisma/client";
+import { pauseStaking, transferStaking } from "./staking-service.js";
+import { withIntent } from "./transaction-intent-service.js";
+import { credit, debit } from "./paws-service.js";
+import type { AssetType, PriceType, Prisma } from "@prisma/client";
 
 interface ListingFilters {
   assetType?: AssetType;
   rarity?: string;
+  priceType?: PriceType;
   minPrice?: string;
   maxPrice?: string;
   sortBy?: string;
@@ -13,14 +18,14 @@ interface ListingFilters {
 }
 
 const LISTING_INCLUDES = {
-  cub: { include: { traits: true } },
+  cub: { include: { equippedTraits: { include: { traitDefinition: true } } } },
   traitDefinition: true,
   crateDefinition: true,
   seller: { select: { walletAddress: true, displayName: true } },
 } as const;
 
 export async function findActiveListings(filters: ListingFilters) {
-  const { page = 1, limit = 20, assetType, rarity, minPrice, maxPrice, sortBy } = filters;
+  const { page = 1, limit = 20, assetType, rarity, priceType, sortBy } = filters;
 
   const cacheKey = buildCacheKey("listings", filters as unknown as Record<string, unknown>);
 
@@ -31,14 +36,20 @@ export async function findActiveListings(filters: ListingFilters) {
       where.assetType = assetType;
     }
 
+    if (priceType) {
+      where.priceType = priceType;
+    }
+
     if (rarity) {
       where.OR = [
-        { cub: { traits: { some: {} } } },
+        { cub: { rarity: rarity as Prisma.EnumCubRarityFilter["equals"] } },
         { traitDefinition: { rarity: rarity as Prisma.EnumTraitRarityFilter["equals"] } },
         { crateDefinition: { rarity: rarity as Prisma.EnumTraitRarityFilter["equals"] } },
       ];
-      // When filtering by rarity with a specific asset type, narrow the OR
-      if (assetType === "TRAIT") {
+      if (assetType === "CUB") {
+        where.OR = undefined;
+        where.cub = { rarity: rarity as Prisma.EnumCubRarityFilter["equals"] };
+      } else if (assetType === "TRAIT") {
         where.OR = undefined;
         where.traitDefinition = { rarity: rarity as Prisma.EnumTraitRarityFilter["equals"] };
       } else if (assetType === "CRATE") {
@@ -47,18 +58,13 @@ export async function findActiveListings(filters: ListingFilters) {
       }
     }
 
-    if (minPrice || maxPrice) {
-      // priceWei is a string; for proper comparison we'd need BigInt.
-      // For now, filter in application layer after fetching.
-    }
-
     let orderBy: Prisma.MarketplaceListingOrderByWithRelationInput;
     switch (sortBy) {
       case "price_asc":
-        orderBy = { priceWei: "asc" };
+        orderBy = { priceAmount: "asc" };
         break;
       case "price_desc":
-        orderBy = { priceWei: "desc" };
+        orderBy = { priceAmount: "desc" };
         break;
       case "oldest":
         orderBy = { listedAt: "asc" };
@@ -97,17 +103,18 @@ export async function createListing(data: {
   assetType: AssetType;
   assetId: string;
   quantity: number;
-  priceWei: string;
+  priceType: PriceType;
+  priceAmount: string;
   sellerId: string;
   sellerWallet: string;
 }) {
-  const { assetType, assetId, quantity, priceWei, sellerId, sellerWallet } = data;
+  const { assetType, assetId, quantity, priceType, priceAmount, sellerId, sellerWallet } = data;
 
-  // Validate ownership and build listing data
   const listingData: Prisma.MarketplaceListingCreateInput = {
     assetType,
     quantity,
-    priceWei,
+    priceType,
+    priceAmount,
     seller: { connect: { id: sellerId } },
   };
 
@@ -117,7 +124,6 @@ export async function createListing(data: {
       if (!cub || cub.ownerId !== sellerId) {
         throw new Error("You do not own this Cub");
       }
-      // Check no active listing exists for this cub
       const existingListing = await prisma.marketplaceListing.findFirst({
         where: { cubId: assetId, status: "ACTIVE" },
       });
@@ -125,7 +131,7 @@ export async function createListing(data: {
         throw new Error("This Cub is already listed");
       }
       listingData.cub = { connect: { id: assetId } };
-      listingData.quantity = 1; // Cubs are always quantity 1
+      listingData.quantity = 1;
       break;
     }
     case "TRAIT": {
@@ -140,7 +146,6 @@ export async function createListing(data: {
       if (!userTrait || userTrait.quantity < 1) {
         throw new Error("You do not own this Trait");
       }
-      // Check available quantity (owned minus actively listed)
       const activeListedQty = await prisma.marketplaceListing.aggregate({
         where: {
           traitDefinitionId: assetId,
@@ -168,7 +173,6 @@ export async function createListing(data: {
       if (!userCrate || userCrate.quantity < 1) {
         throw new Error("You do not own this Crate");
       }
-      // Check available quantity
       const activeListedQty = await prisma.marketplaceListing.aggregate({
         where: {
           crateDefinitionId: assetId,
@@ -191,138 +195,210 @@ export async function createListing(data: {
     include: LISTING_INCLUDES,
   });
 
+  // Pause staking when a CUB is listed (auto-claims accrued PAWS first)
+  if (assetType === "CUB") {
+    await pauseStaking(assetId);
+  }
+
   await invalidateMarketplaceCache();
+
+  economyEvents.emit("listing_created", {
+    userId: sellerId,
+    data: { listingId: listing.id, assetType, priceType, priceAmount },
+  });
+
   return listing;
 }
 
+// ─── Advisory Lock ──────────────────────────────────────
+
+function userLockId(userId: string): bigint {
+  let h = 0xcbf29ce484222325n;
+  for (let i = 0; i < userId.length; i++) {
+    h ^= BigInt(userId.charCodeAt(i));
+    h = (h * 0x100000001b3n) & 0x7fffffffffffffffn;
+  }
+  return h;
+}
+
+async function acquireLock(tx: Prisma.TransactionClient, userId: string): Promise<void> {
+  const lockId = userLockId(userId);
+  await tx.$queryRawUnsafe(`SELECT pg_advisory_xact_lock(${lockId})`);
+}
+
 export async function completePurchase(listingId: string, buyerId: string, buyerWallet: string) {
-  return prisma.$transaction(async (tx) => {
-    const listing = await tx.marketplaceListing.findUnique({
-      where: { id: listingId },
-      include: { seller: true },
-    });
+  return withIntent(buyerId, "MARKETPLACE_BUY", listingId, async () => {
+    const result = await prisma.$transaction(async (tx) => {
+      const listing = await tx.marketplaceListing.findUnique({
+        where: { id: listingId },
+        include: { seller: true },
+      });
 
-    if (!listing) throw new Error("Listing not found");
-    if (listing.status !== "ACTIVE") throw new Error("Listing is no longer active");
-    if (listing.sellerId === buyerId) throw new Error("Cannot buy your own listing");
+      if (!listing) throw new Error("Listing not found");
+      if (listing.status !== "ACTIVE") throw new Error("Listing is no longer active");
+      if (listing.sellerId === buyerId) throw new Error("Cannot buy your own listing");
 
-    // Transfer ownership based on asset type
-    switch (listing.assetType) {
-      case "CUB": {
-        await tx.cub.update({
-          where: { id: listing.cubId! },
-          data: { ownerId: buyerId },
+      // Advisory lock both buyer and seller to prevent race conditions
+      await acquireLock(tx, buyerId);
+      await acquireLock(tx, listing.sellerId);
+
+      // Process PAWS payment if applicable
+      let pawsBurned = 0;
+      if (listing.priceType === "PAWS") {
+        const priceNum = parseInt(listing.priceAmount, 10);
+        const config = await tx.economyConfig.findFirst({ where: { id: 1 } });
+        const burnPct = config?.pawsTradeBurnPct ?? 10;
+        pawsBurned = Math.floor(priceNum * burnPct / 100);
+        const sellerReceives = priceNum - pawsBurned;
+
+        // Debit full amount from buyer
+        await debit(buyerId, priceNum, "MARKETPLACE_BUY", {
+          referenceId: listingId,
+          note: `Buy listing: ${listing.assetType}`,
+          tx,
         });
-        break;
-      }
-      case "TRAIT": {
-        // Decrement seller's trait quantity
-        const sellerTrait = await tx.userTrait.findUnique({
-          where: {
-            walletAddress_traitDefinitionId: {
-              walletAddress: listing.seller.walletAddress,
-              traitDefinitionId: listing.traitDefinitionId!,
-            },
-          },
-        });
-        if (!sellerTrait || sellerTrait.quantity < listing.quantity) {
-          throw new Error("Seller no longer has sufficient trait quantity");
-        }
-        if (sellerTrait.quantity === listing.quantity) {
-          await tx.userTrait.delete({ where: { id: sellerTrait.id } });
-        } else {
-          await tx.userTrait.update({
-            where: { id: sellerTrait.id },
-            data: { quantity: { decrement: listing.quantity } },
+
+        // Credit seller (minus burn)
+        if (sellerReceives > 0) {
+          await credit(listing.sellerId, sellerReceives, "MARKETPLACE_SELL", {
+            referenceId: listingId,
+            note: `Listing sold: ${listing.assetType}`,
+            tx,
           });
         }
-        // Upsert buyer's trait
-        await tx.userTrait.upsert({
-          where: {
-            walletAddress_traitDefinitionId: {
+      }
+
+      // Transfer ownership based on asset type
+      switch (listing.assetType) {
+        case "CUB": {
+          await tx.cub.update({
+            where: { id: listing.cubId! },
+            data: { ownerId: buyerId },
+          });
+          await transferStaking(listing.cubId!, buyerId, tx);
+          break;
+        }
+        case "TRAIT": {
+          const sellerTrait = await tx.userTrait.findUnique({
+            where: {
+              walletAddress_traitDefinitionId: {
+                walletAddress: listing.seller.walletAddress,
+                traitDefinitionId: listing.traitDefinitionId!,
+              },
+            },
+          });
+          if (!sellerTrait || sellerTrait.quantity < listing.quantity) {
+            throw new Error("Seller no longer has sufficient trait quantity");
+          }
+          if (sellerTrait.quantity === listing.quantity) {
+            await tx.userTrait.delete({ where: { id: sellerTrait.id } });
+          } else {
+            await tx.userTrait.update({
+              where: { id: sellerTrait.id },
+              data: { quantity: { decrement: listing.quantity } },
+            });
+          }
+          await tx.userTrait.upsert({
+            where: {
+              walletAddress_traitDefinitionId: {
+                walletAddress: buyerWallet,
+                traitDefinitionId: listing.traitDefinitionId!,
+              },
+            },
+            update: { quantity: { increment: listing.quantity } },
+            create: {
               walletAddress: buyerWallet,
               traitDefinitionId: listing.traitDefinitionId!,
+              quantity: listing.quantity,
+              acquiredFrom: "MARKETPLACE",
             },
-          },
-          update: { quantity: { increment: listing.quantity } },
-          create: {
-            walletAddress: buyerWallet,
-            traitDefinitionId: listing.traitDefinitionId!,
-            quantity: listing.quantity,
-            acquiredFrom: "MARKETPLACE",
-          },
-        });
-        break;
-      }
-      case "CRATE": {
-        // Decrement seller's crate quantity
-        const sellerCrate = await tx.userCrate.findUnique({
-          where: {
-            walletAddress_crateDefinitionId: {
-              walletAddress: listing.seller.walletAddress,
-              crateDefinitionId: listing.crateDefinitionId!,
-            },
-          },
-        });
-        if (!sellerCrate || sellerCrate.quantity < listing.quantity) {
-          throw new Error("Seller no longer has sufficient crate quantity");
-        }
-        if (sellerCrate.quantity === listing.quantity) {
-          await tx.userCrate.delete({ where: { id: sellerCrate.id } });
-        } else {
-          await tx.userCrate.update({
-            where: { id: sellerCrate.id },
-            data: { quantity: { decrement: listing.quantity } },
           });
+          break;
         }
-        // Upsert buyer's crate
-        await tx.userCrate.upsert({
-          where: {
-            walletAddress_crateDefinitionId: {
+        case "CRATE": {
+          const sellerCrate = await tx.userCrate.findUnique({
+            where: {
+              walletAddress_crateDefinitionId: {
+                walletAddress: listing.seller.walletAddress,
+                crateDefinitionId: listing.crateDefinitionId!,
+              },
+            },
+          });
+          if (!sellerCrate || sellerCrate.quantity < listing.quantity) {
+            throw new Error("Seller no longer has sufficient crate quantity");
+          }
+          if (sellerCrate.quantity === listing.quantity) {
+            await tx.userCrate.delete({ where: { id: sellerCrate.id } });
+          } else {
+            await tx.userCrate.update({
+              where: { id: sellerCrate.id },
+              data: { quantity: { decrement: listing.quantity } },
+            });
+          }
+          await tx.userCrate.upsert({
+            where: {
+              walletAddress_crateDefinitionId: {
+                walletAddress: buyerWallet,
+                crateDefinitionId: listing.crateDefinitionId!,
+              },
+            },
+            update: { quantity: { increment: listing.quantity } },
+            create: {
               walletAddress: buyerWallet,
               crateDefinitionId: listing.crateDefinitionId!,
+              quantity: listing.quantity,
             },
-          },
-          update: { quantity: { increment: listing.quantity } },
-          create: {
-            walletAddress: buyerWallet,
-            crateDefinitionId: listing.crateDefinitionId!,
-            quantity: listing.quantity,
-          },
-        });
-        break;
+          });
+          break;
+        }
       }
-    }
 
-    // Update listing status
-    const updatedListing = await tx.marketplaceListing.update({
-      where: { id: listingId },
-      data: {
-        buyerId,
-        status: "SOLD",
-        soldAt: new Date(),
-      },
-      include: LISTING_INCLUDES,
+      // Update listing status
+      const updatedListing = await tx.marketplaceListing.update({
+        where: { id: listingId },
+        data: {
+          buyerId,
+          status: "SOLD",
+          soldAt: new Date(),
+        },
+        include: LISTING_INCLUDES,
+      });
+
+      // Cancel all active offers on this listing
+      await tx.marketplaceOffer.updateMany({
+        where: { listingId, status: "ACTIVE" },
+        data: { status: "CANCELLED", cancelledAt: new Date() },
+      });
+
+      // Calculate fees for sale record
+      const priceNum = parseInt(listing.priceAmount, 10);
+      const platformFee = listing.priceType === "PAWS" ? 0 : Math.floor(priceNum * 250 / 10000); // 0% for PAWS, 2.5% for ETH
+      const royaltyFee = listing.priceType === "ETH" ? Math.floor(priceNum * 500 / 10000) : 0; // 5% royalty for ETH only
+
+      const sale = await tx.marketplaceSale.create({
+        data: {
+          listingId,
+          sellerId: listing.sellerId,
+          buyerId,
+          priceType: listing.priceType,
+          priceAmount: listing.priceAmount,
+          platformFee: platformFee.toString(),
+          royaltyFee: royaltyFee.toString(),
+          pawsBurned: pawsBurned.toString(),
+        },
+      });
+
+      await invalidateMarketplaceCache();
+      return { listing: updatedListing, sale };
     });
 
-    // Calculate fees (stored for future on-chain integration)
-    const priceBigInt = BigInt(listing.priceWei);
-    const platformFee = (priceBigInt * 250n) / 10000n; // 2.5%
-    const royaltyFee = (priceBigInt * 500n) / 10000n; // 5%
-
-    const sale = await tx.marketplaceSale.create({
-      data: {
-        listingId,
-        sellerId: listing.sellerId,
-        buyerId,
-        priceWei: listing.priceWei,
-        platformFeeWei: platformFee.toString(),
-        royaltyFeeWei: royaltyFee.toString(),
-      },
+    // Emit event outside transaction
+    economyEvents.emit("marketplace_sold", {
+      userId: buyerId,
+      data: { listingId, saleId: result.sale.id, priceAmount: result.listing.priceAmount },
     });
 
-    await invalidateMarketplaceCache();
-    return { listing: updatedListing, sale };
+    return result;
   });
 }
 

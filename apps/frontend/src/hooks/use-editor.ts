@@ -110,6 +110,7 @@ export function useEditor() {
 
     return {
       cubId: cubState.cubId,
+      version: 1,
       imageUrl: "https://placehold.co/1024x1024/1a1a2e/f59e0b?text=Saved",
       metadataUri: "ipfs://mock-metadata-uri",
     };

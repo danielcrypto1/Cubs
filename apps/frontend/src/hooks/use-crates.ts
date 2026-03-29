@@ -16,9 +16,19 @@ function buildUserCrates(): UserCrate[] {
     crateDefinition: {
       id: mc.id,
       name: mc.name,
+      type: "STANDARD" as const,
       rarity: mc.rarity as CrateDefinition["rarity"],
       description: mc.description,
       imageUrl: mc.imageUrl,
+      priceType: "PAWS" as const,
+      priceAmount: "200",
+      maxSupply: null,
+      currentSupply: 0,
+      activeFrom: null,
+      activeUntil: null,
+      isBase: false,
+      dropId: null,
+      isActive: true,
       createdAt: "2026-01-01T00:00:00Z",
     },
   }));
@@ -49,6 +59,7 @@ export function useCrates() {
       return {
         success: true,
         reward: {
+          rewardType: "TRAIT" as const,
           traitDefinition: loot.traitDefinition,
           rarity: loot.rarity,
         },

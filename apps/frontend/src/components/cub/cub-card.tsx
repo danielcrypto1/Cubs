@@ -44,17 +44,17 @@ export function CubCard({ cub, onClick }: CubCardProps) {
             <Badge variant="outline">#{cub.tokenId}</Badge>
           </div>
         </CardHeader>
-        {cub.traits && cub.traits.length > 0 && (
+        {cub.equippedTraits && cub.equippedTraits.length > 0 && (
           <CardContent className="px-4 pb-4 pt-0">
             <div className="flex flex-wrap gap-1">
-              {cub.traits.slice(0, 3).map((trait) => (
-                <Badge key={trait.id} variant="secondary" className="text-xs">
-                  {trait.traitValue}
+              {cub.equippedTraits.slice(0, 3).map((eq) => (
+                <Badge key={eq.id} variant="secondary" className="text-xs">
+                  {eq.traitDefinition?.name ?? eq.slotCategory}
                 </Badge>
               ))}
-              {cub.traits.length > 3 && (
+              {cub.equippedTraits.length > 3 && (
                 <Badge variant="secondary" className="text-xs">
-                  +{cub.traits.length - 3}
+                  +{cub.equippedTraits.length - 3}
                 </Badge>
               )}
             </div>

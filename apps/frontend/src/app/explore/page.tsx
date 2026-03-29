@@ -3,37 +3,32 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FloatingBackground } from "@/components/shared/floating-background";
+import { LiveStatsBar } from "@/components/shared/live-stats-bar";
+import { ActivityFeed } from "@/components/shared/activity-feed";
+import { QuickActions } from "@/components/shared/quick-actions";
 import {
   staggerContainer,
   staggerItem,
   hoverLiftGlow,
+  sectionReveal,
 } from "@/lib/animations";
-import { MOCK_CUBS, MOCK_LISTINGS } from "@/lib/mock-data";
-import {
-  Paintbrush,
-  ShoppingBag,
-  Package,
-  Coins,
-  Trophy,
-  Wallet,
-  ArrowRight,
-} from "lucide-react";
-
-const features = [
-  { title: "Mint Cubs", description: "Mint unique Cubs NFTs with randomized traits", href: "/mint", icon: Wallet, colour: "text-cubs-gold" },
-  { title: "Cub Editor", description: "Customize and edit your Cubs with new traits", href: "/editor", icon: Paintbrush, colour: "text-cubs-pink" },
-  { title: "Marketplace", description: "Buy and sell Cubs on the open marketplace", href: "/marketplace", icon: ShoppingBag, colour: "text-cubs-sky" },
-  { title: "Crates", description: "Open crates to discover rare traits and items", href: "/crates", icon: Package, colour: "text-cubs-purple" },
-  { title: "Staking", description: "Stake your Cubs to earn CUBS tokens", href: "/staking", icon: Coins, colour: "text-cubs-green" },
-  { title: "Achievements", description: "Unlock achievements and earn rewards", href: "/achievements", icon: Trophy, colour: "text-cubs-orange" },
-];
+import { MOCK_CUBS, MOCK_CRATES, MOCK_LISTINGS } from "@/lib/mock-data";
+import { ArrowRight, Globe, Package, Sparkles, Zap } from "lucide-react";
 
 const RARITY_VARIANTS: Record<string, "common" | "uncommon" | "rare" | "epic" | "legendary"> = {
   COMMON: "common", UNCOMMON: "uncommon", RARE: "rare", EPIC: "epic", LEGENDARY: "legendary",
+};
+
+const RARITY_GLOW: Record<string, string> = {
+  COMMON: "shadow-zinc-400/20",
+  UNCOMMON: "shadow-green-400/20",
+  RARE: "shadow-blue-400/30",
+  EPIC: "shadow-purple-400/30",
+  LEGENDARY: "shadow-amber-400/40",
 };
 
 export default function HomePage() {
@@ -41,9 +36,8 @@ export default function HomePage() {
     <div className="-mt-24 space-y-0">
       <FloatingBackground />
 
-      {/* ── Hero + Features ─────────────────────── */}
+      {/* ═══ HERO ═══════════════════════════════════════════ */}
       <section className="relative overflow-hidden pt-24">
-        {/* Sky background */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/assets/scenes/homepage-hero.png"
@@ -54,200 +48,358 @@ export default function HomePage() {
             aria-hidden="true"
             priority
           />
-          {/* No bottom fade — section 2 overlaps to handle transition */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/30 to-background" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-16">
-        <div className="flex flex-col items-center gap-8 py-4 text-center lg:flex-row lg:gap-16 lg:py-12 lg:text-left">
-          {/* Hero image with floating animation */}
-          <motion.div
-            className="relative aspect-square w-64 shrink-0 overflow-hidden rounded-3xl bg-white/20 backdrop-blur-sm border border-white/20 lg:w-80"
-            animate={{ y: [0, -20, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Image
-              src="https://placehold.co/400x400/1a1a2e/f59e0b?text=CUBS"
-              alt="CUBS Hero"
-              fill
-              className="object-cover"
-              priority
-            />
-          </motion.div>
-
-          <div className="max-w-xl rounded-3xl bg-black/30 p-8 backdrop-blur-sm">
-            <motion.h1
-              className="text-hero sm:text-7xl text-white drop-shadow-lg"
-              initial="hidden"
-              animate="visible"
-              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.15 } } }}
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-12">
+          <div className="flex flex-col items-center gap-8 py-8 text-center lg:flex-row lg:gap-16 lg:text-left">
+            {/* Animated Cub hero */}
+            <motion.div
+              className="relative aspect-square w-64 shrink-0 lg:w-80"
+              animate={{ y: [0, -16, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
-              {["Collect.", "Customize."].map((word) => (
-                <motion.span
-                  key={word}
-                  className="mr-[0.3em] inline-block"
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } } }}
-                >
-                  {word}
-                </motion.span>
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-cubs-gold/20 to-cubs-purple/20 blur-2xl" />
+              <div className="relative h-full overflow-hidden rounded-3xl border-2 border-white/20 bg-white/10 backdrop-blur-sm">
+                <Image
+                  src="https://placehold.co/400x400/1a1a2e/f59e0b?text=CUBS"
+                  alt="CUBS Hero"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              {/* Floating particles around the cub */}
+              {[...Array(4)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute h-2 w-2 rounded-full bg-cubs-gold"
+                  style={{
+                    top: `${20 + i * 20}%`,
+                    left: i % 2 === 0 ? "-8px" : "calc(100% + 4px)",
+                  }}
+                  animate={{
+                    y: [0, -12, 0],
+                    opacity: [0.3, 0.8, 0.3],
+                    scale: [0.8, 1.2, 0.8],
+                  }}
+                  transition={{
+                    duration: 2 + i * 0.5,
+                    repeat: Infinity,
+                    delay: i * 0.4,
+                  }}
+                />
               ))}
-              <motion.span
-                className="cubs-gradient-text inline-block"
-                variants={{ hidden: { opacity: 0, y: 20, scale: 0.9 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } } }}
-              >
-                Trade.
-              </motion.span>
-            </motion.h1>
-            <p className="mt-4 text-lg text-white/90">
-              CUBS is the ultimate NFT ecosystem on Ethereum. Mint unique cartoon bears,
-              customize them with rare traits, and trade on the marketplace.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4 lg:justify-start">
+            </motion.div>
+
+            {/* Hero text */}
+            <div className="max-w-xl">
               <motion.div
-                animate={{ boxShadow: ["0 0 8px oklch(0.82 0.17 80 / 0.15)", "0 0 24px oklch(0.82 0.17 80 / 0.25)", "0 0 8px oklch(0.82 0.17 80 / 0.15)"] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="rounded-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
               >
-                <Button size="lg" asChild>
-                  <Link href="/mint">Mint a Cub</Link>
+                <Badge variant="outline" className="mb-4 border-cubs-gold/30 bg-cubs-gold/10 text-cubs-gold">
+                  <Sparkles className="mr-1 h-3 w-3" /> Season 1 Live
+                </Badge>
+              </motion.div>
+
+              <motion.h1
+                className="text-hero sm:text-7xl text-white drop-shadow-lg"
+                initial="hidden"
+                animate="visible"
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }}
+              >
+                {["Collect.", "Customize."].map((word) => (
+                  <motion.span
+                    key={word}
+                    className="mr-[0.3em] inline-block"
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}
+                  >
+                    {word}
+                  </motion.span>
+                ))}
+                <motion.span
+                  className="cubs-gradient-text inline-block"
+                  variants={{ hidden: { opacity: 0, y: 20, scale: 0.9 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5 } } }}
+                >
+                  Dominate.
+                </motion.span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="mt-4 text-lg text-white/80"
+              >
+                Build your pack. Forge legendary traits. Deploy Cub Agents to earn PAWS.
+                The ultimate NFT ecosystem on Ethereum.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="mt-8 flex flex-wrap justify-center gap-4 lg:justify-start"
+              >
+                <motion.div
+                  animate={{
+                    boxShadow: [
+                      "0 0 8px oklch(0.82 0.17 80 / 0.15)",
+                      "0 0 28px oklch(0.82 0.17 80 / 0.3)",
+                      "0 0 8px oklch(0.82 0.17 80 / 0.15)",
+                    ],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="rounded-lg"
+                >
+                  <Button size="lg" asChild>
+                    <Link href="/mint">
+                      <Zap className="mr-2 h-4 w-4" /> Mint a Cub
+                    </Link>
+                  </Button>
+                </motion.div>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/marketplace">
+                    Explore Marketplace <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </motion.div>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/marketplace">
-                  Explore Marketplace <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
             </div>
           </div>
-        </div>
 
-        {/* Features grid within the playground scene */}
-        <motion.div
-          className="mt-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-        >
-          <h2 className="text-section mb-8 text-center">Platform Features</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f) => (
-              <motion.div key={f.href} variants={staggerItem} {...hoverLiftGlow}>
-                <Link href={f.href}>
-                  <Card className="h-full cursor-pointer cubs-card-hover bg-white/10 backdrop-blur-md border-white/20">
-                    <CardHeader>
-                      <f.icon className={`mb-2 h-8 w-8 ${f.colour}`} />
-                      <CardTitle>{f.title}</CardTitle>
-                      <CardDescription>{f.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <span className="text-sm font-semibold text-primary">Explore &rarr;</span>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
+          {/* Live stats bar */}
+          <div className="mt-8">
+            <LiveStatsBar />
           </div>
-        </motion.div>
         </div>
       </section>
 
-      {/* ── Cub Showcase + Marketplace Preview ──────── */}
-      <section className="relative -mt-24 overflow-hidden pt-24">
-        {/* Background 2 transition */}
+      {/* ═══ QUICK ACTIONS ══════════════════════════════════ */}
+      <section className="relative z-10 -mt-8">
+        <div className="mx-auto max-w-3xl px-4">
+          <QuickActions />
+        </div>
+      </section>
+
+      {/* ═══ FEATURED CRATES ════════════════════════════════ */}
+      <section className="relative py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={sectionReveal}
+          >
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-6 w-6 text-cubs-purple" />
+                <h2 className="text-section">Featured Crates</h2>
+              </div>
+              <Button variant="ghost" asChild>
+                <Link href="/crates">View All <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              </Button>
+            </div>
+
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            >
+              {MOCK_CRATES.map((crate) => (
+                <motion.div key={crate.id} variants={staggerItem}>
+                  <Link href="/crates">
+                    <Card className="group overflow-hidden cubs-card-hover border-white/10 bg-white/5 backdrop-blur-sm">
+                      <div className="relative aspect-square">
+                        <Image src={crate.imageUrl} alt={crate.name} fill unoptimized className="object-cover transition-transform group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <Badge
+                          variant={RARITY_VARIANTS[crate.rarity] ?? "common"}
+                          className="absolute right-2 top-2"
+                        >
+                          {crate.rarity}
+                        </Badge>
+                        <div className="absolute bottom-3 left-3">
+                          <p className="text-sm font-bold text-white">{crate.name}</p>
+                          <p className="text-xs text-white/70">{crate.quantity} available</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══ FEATURED CUBS + ACTIVITY FEED ══════════════════ */}
+      <section className="relative py-16">
         <div className="absolute inset-0 z-0">
           <Image
             src="/assets/scenes/homepage-transition.png"
             alt=""
             fill
             unoptimized
-            className="object-cover"
+            className="object-cover opacity-40"
             aria-hidden="true"
           />
-          {/* Top blend from sky into bg2, bottom fade to dark */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent via-80% to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
         </div>
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-16">
-        {/* Cub Showcase */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-        >
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-section">Cub Showcase</h2>
-            <Button variant="ghost" asChild>
-              <Link href="/my-cubs">View All <ArrowRight className="ml-1 h-4 w-4" /></Link>
-            </Button>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {MOCK_CUBS.slice(0, 3).map((cub) => (
-              <motion.div key={cub.id} variants={staggerItem} {...hoverLiftGlow}>
-                <Card className="overflow-hidden cubs-card-hover bg-white/10 backdrop-blur-md border-white/20">
-                  <div className="relative aspect-square cubs-image-zoom">
-                    <Image src={cub.imageUrl} alt={cub.name} fill className="object-cover" />
-                  </div>
-                  <CardHeader className="p-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">{cub.name}</CardTitle>
-                      <Badge variant="outline">#{cub.tokenId}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex flex-wrap gap-1 px-4 pb-4 pt-0">
-                    {cub.traits.slice(0, 3).map((t) => (
-                      <Badge key={t.value} variant={RARITY_VARIANTS[t.rarity] ?? "common"} className="text-xs">
-                        {t.value}
-                      </Badge>
-                    ))}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
 
-        {/* Marketplace Preview */}
-        <motion.div
-          className="mt-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={staggerContainer}
-        >
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-section">Marketplace</h2>
-            <Button variant="ghost" asChild>
-              <Link href="/marketplace">Browse All <ArrowRight className="ml-1 h-4 w-4" /></Link>
-            </Button>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {MOCK_LISTINGS.map((listing) => (
-              <motion.div key={listing.id} variants={staggerItem} {...hoverLiftGlow}>
-                <Card className="overflow-hidden cubs-card-hover bg-white/10 backdrop-blur-md border-white/20">
-                  <div className="relative aspect-square bg-white/5 cubs-image-zoom">
-                    <Image src={listing.imageUrl} alt={listing.name} fill className="object-cover" />
-                    <Badge variant="outline" className="absolute right-2 top-2 bg-background/80 backdrop-blur-sm">
-                      {listing.type}
-                    </Badge>
+        <div className="relative z-10 mx-auto max-w-7xl px-4">
+          <div className="grid gap-12 lg:grid-cols-3">
+            {/* Featured Cubs — 2/3 width */}
+            <div className="lg:col-span-2">
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={sectionReveal}
+              >
+                <div className="mb-8 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="h-6 w-6 text-cubs-gold" />
+                    <h2 className="text-section">Featured Cubs</h2>
                   </div>
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold">{listing.name}</p>
-                      <Badge variant={RARITY_VARIANTS[listing.rarity] ?? "common"} className="text-xs">
-                        {listing.rarity}
-                      </Badge>
-                    </div>
-                    <p className="mt-1 text-sm font-bold text-primary">{listing.price} ETH</p>
-                  </CardContent>
-                </Card>
+                  <Button variant="ghost" asChild>
+                    <Link href="/my-cubs">View All <ArrowRight className="ml-1 h-4 w-4" /></Link>
+                  </Button>
+                </div>
+
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                  {MOCK_CUBS.slice(0, 6).map((cub) => (
+                    <motion.div key={cub.id} variants={staggerItem} {...hoverLiftGlow}>
+                      <Card className="group overflow-hidden border-white/10 bg-white/5 backdrop-blur-sm">
+                        <div className="relative aspect-square cubs-image-zoom">
+                          <Image src={cub.imageUrl} alt={cub.name} fill className="object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                        </div>
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between">
+                            <p className="font-bold">{cub.name}</p>
+                            <Badge variant="outline" className="text-[10px]">#{cub.tokenId}</Badge>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {cub.traits.slice(0, 2).map((t) => (
+                              <Badge
+                                key={t.value}
+                                variant={RARITY_VARIANTS[t.rarity] ?? "common"}
+                                className="text-[10px]"
+                              >
+                                {t.value}
+                              </Badge>
+                            ))}
+                            {cub.traits.length > 2 && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                +{cub.traits.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
               </motion.div>
-            ))}
+            </div>
+
+            {/* Activity Feed — 1/3 width */}
+            <div>
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={sectionReveal}
+              >
+                <div className="mb-8 flex items-center gap-3">
+                  <div className="relative">
+                    <div className="h-2 w-2 rounded-full bg-green-400" />
+                    <div className="absolute inset-0 h-2 w-2 animate-ping rounded-full bg-green-400" />
+                  </div>
+                  <h2 className="text-section text-xl">Live Activity</h2>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+                  <ActivityFeed maxItems={8} compact />
+                </div>
+              </motion.div>
+            </div>
           </div>
-        </motion.div>
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────── */}
+      {/* ═══ WORLD MAP PREVIEW ══════════════════════════════ */}
+      <section className="relative py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={sectionReveal}
+          >
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Globe className="h-6 w-6 text-cubs-sky" />
+                <h2 className="text-section">World Map</h2>
+              </div>
+              <Button variant="ghost" asChild>
+                <Link href="/map">Explore Map <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              </Button>
+            </div>
+
+            <Link href="/map">
+              <Card className="group relative overflow-hidden cubs-card-hover border-white/10 bg-white/5">
+                <div className="relative aspect-[21/9] w-full">
+                  <Image
+                    src="https://placehold.co/1920x823/1a1a2e/334155?text=CUBS+World+Map"
+                    alt="CUBS World Map"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                  {/* Location dots */}
+                  {[
+                    { x: "20%", y: "40%", name: "Cub Town", color: "bg-cubs-gold" },
+                    { x: "45%", y: "30%", name: "Trait Bazaar", color: "bg-cubs-pink" },
+                    { x: "70%", y: "50%", name: "Crate Cavern", color: "bg-cubs-purple" },
+                    { x: "85%", y: "35%", name: "PAWS Bank", color: "bg-cubs-green" },
+                  ].map((loc) => (
+                    <motion.div
+                      key={loc.name}
+                      className="absolute"
+                      style={{ left: loc.x, top: loc.y }}
+                      animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: Math.random() * 2 }}
+                    >
+                      <div className={`h-3 w-3 rounded-full ${loc.color} shadow-lg`} />
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100">
+                        {loc.name}
+                      </span>
+                    </motion.div>
+                  ))}
+
+                  <div className="absolute bottom-6 left-6">
+                    <p className="text-xl font-display text-white">Explore the CUBS World</p>
+                    <p className="text-sm text-white/70">4 locations with quests, rewards, and hidden treasures</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══ CTA ════════════════════════════════════════════ */}
       <section className="py-16 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -256,7 +408,7 @@ export default function HomePage() {
         >
           <h2 className="text-section">Ready to Start?</h2>
           <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
-            Mint your first Cub, customize traits in the Forge, or explore the world map.
+            Mint your first Cub, deploy Cub Agents, or dive into the world map.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Button size="lg" asChild>

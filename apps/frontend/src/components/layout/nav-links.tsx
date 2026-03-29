@@ -11,10 +11,12 @@ const primaryLinks = [
   { href: "/", label: "World Map" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/forge", label: "Cub Forge" },
+  { href: "/drops", label: "Drops" },
   { href: "/marketplace", label: "Marketplace" },
 ];
 
 const moreLinks = [
+  { href: "/agents", label: "Agents" },
   { href: "/mint", label: "Mint" },
   { href: "/explore", label: "Explore" },
   { href: "/staking", label: "Staking" },

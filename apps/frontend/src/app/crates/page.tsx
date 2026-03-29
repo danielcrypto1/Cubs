@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { CrateCard } from "@/components/crate/crate-card";
 import { CrateOpenModal } from "@/components/crate/crate-open-modal";
@@ -8,9 +9,11 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCrates } from "@/hooks/use-crates";
 import { MOCK_CRATES } from "@/lib/mock-data";
+import { CRATE_STAGE_TIMING } from "@/lib/animations";
 import type { UserCrate, CrateOpenResult, CrateDefinition } from "@/types";
 
 export default function CratesPage() {
+  const router = useRouter();
   const { data: crates, loading, openCrate } = useCrates();
   const [openingCrateId, setOpeningCrateId] = useState<string | null>(null);
   const [modalCrate, setModalCrate] = useState<CrateDefinition | null>(null);
@@ -20,18 +23,20 @@ export default function CratesPage() {
   const handleOpen = async (userCrate: UserCrate) => {
     if (!userCrate.crateDefinition) return;
 
-    setModalCrate(userCrate.crateDefinition);
+    const def = userCrate.crateDefinition;
+    setModalCrate(def);
     setOpeningCrateId(userCrate.crateDefinitionId);
     setIsOpening(true);
     setResult(null);
 
     try {
       const res = await openCrate(userCrate.crateDefinitionId);
-      // Delay reveal for animation
+      // Delay the result so animation stages can play out
+      const timing = CRATE_STAGE_TIMING[def.rarity] ?? CRATE_STAGE_TIMING.COMMON;
       setTimeout(() => {
         setResult(res);
         setIsOpening(false);
-      }, 1500);
+      }, timing.total);
     } catch {
       setIsOpening(false);
       setModalCrate(null);
@@ -40,11 +45,38 @@ export default function CratesPage() {
     }
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setModalCrate(null);
     setResult(null);
     setIsOpening(false);
-  };
+  }, []);
+
+  const handleEquip = useCallback(
+    (res: CrateOpenResult) => {
+      handleCloseModal();
+      // Navigate to forge/editor with the trait pre-selected
+      if (res.reward.traitDefinition) {
+        router.push(`/forge?equip=${res.reward.traitDefinition.id}`);
+      }
+    },
+    [handleCloseModal, router],
+  );
+
+  const handleSell = useCallback(
+    (res: CrateOpenResult) => {
+      handleCloseModal();
+      router.push("/marketplace?action=list");
+    },
+    [handleCloseModal, router],
+  );
+
+  const handleBurn = useCallback(
+    (_res: CrateOpenResult) => {
+      // TODO: integrate with burn endpoint
+      handleCloseModal();
+    },
+    [handleCloseModal],
+  );
 
   if (loading) {
     return (
@@ -96,6 +128,9 @@ export default function CratesPage() {
         isOpening={isOpening}
         result={result}
         onClose={handleCloseModal}
+        onEquip={handleEquip}
+        onSell={handleSell}
+        onBurn={handleBurn}
       />
     </div>
   );

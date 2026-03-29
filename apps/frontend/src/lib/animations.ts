@@ -150,6 +150,89 @@ export const crateIdle: Variants = {
   },
 };
 
+/* ── Crate opening stages ─────────────────────────────────────── */
+
+export const crateShake: Variants = {
+  idle: { rotate: 0, x: 0 },
+  shaking: {
+    rotate: [0, -6, 6, -8, 8, -10, 10, -6, 6, 0],
+    x: [0, -3, 3, -4, 4, -5, 5, -3, 3, 0],
+    transition: { duration: 0.8, ease: "easeInOut" },
+  },
+  shaking_intense: {
+    rotate: [0, -10, 10, -14, 14, -18, 18, -14, 14, -10, 10, 0],
+    x: [0, -5, 5, -7, 7, -9, 9, -7, 7, -5, 5, 0],
+    scale: [1, 1.02, 0.98, 1.03, 0.97, 1.04, 0.96, 1.02, 0.98, 1],
+    transition: { duration: 1.2, ease: "easeInOut" },
+  },
+};
+
+export const crateGlow = {
+  common: {
+    boxShadow: [
+      "0 0 20px rgba(161,161,170,0.2)",
+      "0 0 60px rgba(161,161,170,0.6)",
+      "0 0 80px rgba(161,161,170,0.8)",
+    ],
+  },
+  uncommon: {
+    boxShadow: [
+      "0 0 20px rgba(74,222,128,0.2)",
+      "0 0 60px rgba(74,222,128,0.6)",
+      "0 0 100px rgba(74,222,128,0.8)",
+    ],
+  },
+  rare: {
+    boxShadow: [
+      "0 0 20px rgba(96,165,250,0.2)",
+      "0 0 60px rgba(96,165,250,0.6)",
+      "0 0 100px rgba(96,165,250,0.8)",
+    ],
+  },
+  epic: {
+    boxShadow: [
+      "0 0 20px rgba(192,132,252,0.2)",
+      "0 0 80px rgba(192,132,252,0.6)",
+      "0 0 120px rgba(192,132,252,0.9)",
+    ],
+  },
+  legendary: {
+    boxShadow: [
+      "0 0 30px rgba(251,191,36,0.3)",
+      "0 0 100px rgba(251,191,36,0.7)",
+      "0 0 150px rgba(251,191,36,1.0)",
+    ],
+  },
+};
+
+export const crateFlash: Variants = {
+  hidden: { opacity: 0, scale: 1 },
+  flash: {
+    opacity: [0, 1, 1, 0],
+    scale: [1, 1.5, 2, 2.5],
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
+export const rewardCardReveal: Variants = {
+  hidden: { opacity: 0, scale: 0.3, rotateY: 180 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    rotateY: 0,
+    transition: { type: "spring", stiffness: 180, damping: 14, delay: 0.2 },
+  },
+};
+
+/** Timing per rarity tier (milliseconds) */
+export const CRATE_STAGE_TIMING: Record<string, { shake: number; glow: number; flash: number; total: number }> = {
+  COMMON:    { shake: 600,  glow: 400,  flash: 400, total: 1400 },
+  UNCOMMON:  { shake: 800,  glow: 500,  flash: 400, total: 1700 },
+  RARE:      { shake: 1000, glow: 600,  flash: 500, total: 2100 },
+  EPIC:      { shake: 1200, glow: 800,  flash: 500, total: 2500 },
+  LEGENDARY: { shake: 1600, glow: 1000, flash: 600, total: 3200 },
+};
+
 /* ── Phase 6: Section reveal (dramatic entrance) ───────────────── */
 
 export const sectionReveal: Variants = {
