@@ -2,17 +2,25 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { api } from "@/lib/api-client";
 import type { Drop } from "@/types";
+import { ChestIcon } from "@/components/shared/chest-icon";
 
 const CHEST_TIERS = [
-  { name: "Bronze Chest", price: "0.05 ETH", odds: "Common · Uncommon", color: "from-amber-700 to-amber-900" },
-  { name: "Silver Chest", price: "0.15 ETH", odds: "Rare · Uncommon", color: "from-slate-400 to-slate-700" },
-  { name: "Gold Chest", price: "0.4 ETH", odds: "Epic · Rare", color: "from-amber-400 to-amber-700" },
-  { name: "Diamond Chest", price: "1.0 ETH", odds: "Legendary · Epic", color: "from-cyan-300 to-blue-700" },
+  { tier: "bronze" as const, name: "Bronze Chest", price: "0.05 ETH", odds: "Common · Uncommon" },
+  { tier: "silver" as const, name: "Silver Chest", price: "0.15 ETH", odds: "Rare · Uncommon" },
+  { tier: "gold" as const, name: "Gold Chest", price: "0.4 ETH", odds: "Epic · Rare" },
+  { tier: "diamond" as const, name: "Diamond Chest", price: "1.0 ETH", odds: "Legendary · Epic" },
+];
+
+const HOVER_DROPS = [
+  { name: "Genesis Drop", subtitle: "10,000 cubs · The original den", color: "from-emerald-500 to-emerald-900" },
+  { name: "Onsie Season", subtitle: "Cosy alts · Limited 1,000", color: "from-rose-500 to-rose-900" },
+  { name: "Wild West", subtitle: "Frontier traits · Coming Q3", color: "from-amber-500 to-amber-900" },
+  { name: "Aquatic Edition", subtitle: "Underwater drops · TBA", color: "from-sky-500 to-sky-900" },
+  { name: "Cyberpunk", subtitle: "Neon traits · Coming Q4", color: "from-fuchsia-500 to-fuchsia-900" },
 ];
 
 function CountdownTimer({ endTime }: { endTime: string }) {
@@ -40,17 +48,26 @@ function DropTile({ drop, dim = false }: { drop: Drop; dim?: boolean }) {
   return (
     <motion.div whileHover={{ y: -4 }} className={`group ${dim ? "opacity-70" : ""}`}>
       <Link href={`/drops/${drop.id}`} className="block overflow-hidden rounded-3xl border border-border bg-card cubs-card-hover">
-        <div className="relative aspect-[16/9] overflow-hidden">
-          {drop.bannerImage ? (
-            <img src={drop.bannerImage} alt={drop.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-          ) : (
-            <div
-              className="flex h-full items-center justify-center"
-              style={{ background: drop.themeColor ? `linear-gradient(135deg, ${drop.themeColor}, oklch(0.10 0 0))` : "linear-gradient(135deg, oklch(0.30 0.10 145), oklch(0.10 0 0))" }}
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <span className={`absolute right-3 top-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${drop.status === "LIVE" ? "bg-primary text-primary-foreground" : drop.status === "SCHEDULED" ? "border border-white/40 text-white" : "border border-white/20 text-white/70"}`}>
+        <div
+          className="relative aspect-[16/9] overflow-hidden"
+          style={{
+            background: drop.themeColor
+              ? `linear-gradient(135deg, ${drop.themeColor}, oklch(0.10 0 0))`
+              : "linear-gradient(135deg, oklch(0.30 0.10 145), oklch(0.10 0 0))",
+          }}
+        >
+          {/* Decorative chest in card art */}
+          <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-90 transition-transform duration-500 group-hover:scale-110">
+            <ChestIcon tier={drop.themeColor ? "gold" : "diamond"} size={140} />
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
+          <span className={`absolute right-3 top-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
+            drop.status === "LIVE"
+              ? "bg-primary text-primary-foreground"
+              : drop.status === "SCHEDULED"
+                ? "border border-white/40 text-white"
+                : "border border-white/20 text-white/70"
+          }`}>
             {drop.status}
           </span>
         </div>
@@ -99,21 +116,31 @@ export default function DropsPage() {
             it to find out what&apos;s inside — every chest is final.
           </p>
         </div>
+
+        {/* Floating decorative chests */}
+        <div aria-hidden className="pointer-events-none absolute right-0 top-0 hidden h-full w-1/2 lg:block">
+          <span className="absolute right-[8%] top-[20%]"><ChestIcon tier="gold" size={120} /></span>
+          <span className="absolute right-[28%] top-[50%]"><ChestIcon tier="silver" size={90} /></span>
+          <span className="absolute right-[14%] top-[68%]"><ChestIcon tier="diamond" size={100} /></span>
+        </div>
       </section>
 
       <div className="mx-auto max-w-7xl px-4 pb-16">
-        {/* Featured banner — three example chests */}
+        {/* Featured banner */}
         {featured && (
           <section className="mb-16">
             <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
               <div className="grid gap-0 lg:grid-cols-[1.4fr_1fr]">
-                <div className="relative aspect-[16/9] lg:aspect-auto">
-                  {featured.bannerImage ? (
-                    <img src={featured.bannerImage} alt={featured.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="h-full" style={{ background: "linear-gradient(135deg, oklch(0.30 0.10 145), oklch(0.10 0 0))" }} />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+                <div
+                  className="relative aspect-[16/9] lg:aspect-auto"
+                  style={{
+                    background: "linear-gradient(135deg, oklch(0.30 0.10 145), oklch(0.10 0 0))",
+                  }}
+                >
+                  <div className="absolute inset-0 grid place-items-center">
+                    <ChestIcon tier="diamond" size={260} />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
                 </div>
                 <div className="flex flex-col justify-between gap-6 p-8 lg:p-10">
                   <div>
@@ -122,9 +149,11 @@ export default function DropsPage() {
                     <p className="mt-3 text-sm text-muted-foreground">{featured.description}</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <Image src="/ux/drops/chests.png" alt="" width={120} height={120} className="rounded-xl border border-border" />
-                    <Image src="/ux/drops/chests.png" alt="" width={120} height={120} className="rounded-xl border border-border" />
-                    <Image src="/ux/drops/chests.png" alt="" width={120} height={120} className="rounded-xl border border-border" />
+                    {(["bronze", "silver", "gold"] as const).map((t) => (
+                      <div key={t} className="grid aspect-square place-items-center rounded-xl border border-border bg-background">
+                        <ChestIcon tier={t} size={64} />
+                      </div>
+                    ))}
                   </div>
                   <Link href={`/drops/${featured.id}`} className="inline-flex w-fit items-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-bold uppercase tracking-widest text-primary-foreground transition hover:brightness-110">
                     Buy a chest
@@ -136,7 +165,7 @@ export default function DropsPage() {
           </section>
         )}
 
-        {/* Chest tiers */}
+        {/* Chest tiers — SVG chests */}
         <section className="mb-16">
           <h2 className="font-display text-3xl uppercase">Chest Tiers</h2>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">Pick your luck level. Higher tier, rarer rolls.</p>
@@ -151,7 +180,9 @@ export default function DropsPage() {
                 whileHover={{ y: -4 }}
                 className="cubs-shield border border-border bg-card p-6 pb-10 text-center"
               >
-                <div className={`mx-auto h-20 w-20 rounded-2xl bg-gradient-to-br ${tier.color}`} />
+                <div className="grid place-items-center">
+                  <ChestIcon tier={tier.tier} size={112} />
+                </div>
                 <p className="mt-5 font-display text-xl uppercase">{tier.name}</p>
                 <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">{tier.odds}</p>
                 <p className="mt-4 font-display text-2xl text-primary">{tier.price}</p>
@@ -163,7 +194,28 @@ export default function DropsPage() {
           </div>
         </section>
 
-        {/* Live drops grid */}
+        {/* Hover-row archive of past + upcoming drop themes */}
+        <section className="mb-16">
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="font-display text-3xl uppercase">Past · Upcoming</h2>
+            <span className="text-xs uppercase tracking-widest text-muted-foreground">Hover to preview</span>
+          </div>
+          <ul className="divide-y divide-border border-y border-border">
+            {HOVER_DROPS.map((d) => (
+              <li
+                key={d.name}
+                className={`group relative flex items-center justify-between gap-4 overflow-hidden bg-gradient-to-r ${d.color} bg-[length:0%_100%] bg-no-repeat px-4 py-6 transition-[background-size] duration-500 ease-out hover:bg-[length:100%_100%]`}
+              >
+                <span className="relative z-10 flex items-center gap-4 transition-transform duration-500 group-hover:translate-x-2">
+                  <span className="font-display text-3xl uppercase tracking-tight md:text-5xl">{d.name}</span>
+                  <span className="hidden text-xs uppercase tracking-widest text-foreground/60 md:inline">{d.subtitle}</span>
+                </span>
+                <ArrowRight className="relative z-10 h-6 w-6 -translate-x-2 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100" />
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => <div key={i} className="h-80 animate-pulse rounded-3xl bg-card" />)}

@@ -338,10 +338,19 @@ html:not(.dark) body {
 /* ── Marquee for footer big "CUBS" letters ─────────────────────── */
 @keyframes cubs-marquee {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  to { transform: translateX(-33.333%); }
+}
+@keyframes cubs-marquee-reverse {
+  from { transform: translateX(-33.333%); }
+  to { transform: translateX(0); }
 }
 .cubs-marquee {
-  animation: cubs-marquee 30s linear infinite;
+  animation: cubs-marquee 40s linear infinite;
+  width: max-content;
+}
+.cubs-marquee-reverse {
+  animation: cubs-marquee-reverse 40s linear infinite;
+  width: max-content;
 }
 
 /* ── Custom cursor (hides native cursor when active) ───────────── */
