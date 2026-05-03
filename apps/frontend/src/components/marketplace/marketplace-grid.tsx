@@ -26,9 +26,9 @@ export function MarketplaceGrid({
 }: MarketplaceGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="aspect-[3/4] rounded-xl" />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="aspect-[3/4] rounded-3xl" />
         ))}
       </div>
     );
@@ -48,7 +48,7 @@ export function MarketplaceGrid({
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+      className="grid grid-cols-2 gap-4 sm:grid-cols-3"
     >
       <AnimatePresence mode="popLayout">
         {listings.map((listing) => (

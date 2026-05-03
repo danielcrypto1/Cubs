@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "@/components/shared/page-header";
-import { FloatingBackground } from "@/components/shared/floating-background";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,7 +59,6 @@ export default function ListingDetailPage() {
   if (!listing) {
     return (
       <div className="relative min-h-screen">
-        <FloatingBackground count={4} />
         <div className="relative z-10 mx-auto max-w-4xl px-4 py-8">
           <Link href="/marketplace" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to Marketplace
@@ -93,8 +91,6 @@ export default function ListingDetailPage() {
 
   return (
     <div className="relative min-h-screen">
-      <FloatingBackground count={6} />
-
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-8">
         <Link href="/marketplace" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Back to Marketplace

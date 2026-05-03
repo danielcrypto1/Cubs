@@ -104,11 +104,19 @@ export interface MockListing {
 }
 
 export const MOCK_LISTINGS: MockListing[] = [
-  // Cubs
-  { id: "l1",  type: "CUB",   name: "Blaze",          imageUrl: "https://placehold.co/400x400/1a1a2e/f59e0b?text=Blaze",        rarity: "EPIC",      price: "0.12", seller: "0xAb5d...3f1E", listedAt: "2026-03-14T10:00:00Z", quantity: 1 },
-  { id: "l2",  type: "CUB",   name: "Shadow",         imageUrl: "https://placehold.co/400x400/1a1a2e/a78bfa?text=Shadow",       rarity: "LEGENDARY", price: "0.45", seller: "0x7f2C...8aD4", listedAt: "2026-03-13T14:30:00Z", quantity: 1 },
-  { id: "l3",  type: "CUB",   name: "Frost",          imageUrl: "https://placehold.co/400x400/1a1a2e/60a5fa?text=Frost",        rarity: "RARE",      price: "0.08", seller: "0xCd91...7a3B", listedAt: "2026-03-15T08:15:00Z", quantity: 1 },
-  { id: "l4",  type: "CUB",   name: "Ember",          imageUrl: "https://placehold.co/400x400/1a1a2e/fb923c?text=Ember",        rarity: "EPIC",      price: "0.18", seller: "0xEf42...2bC9", listedAt: "2026-03-12T22:00:00Z", quantity: 1 },
+  // Cubs — using real collection images
+  { id: "l1",  type: "CUB",   name: "Cub #1",         imageUrl: "/assets/cubs/collection/1.png",     rarity: "EPIC",      price: "0.12", seller: "0xAb5d...3f1E", listedAt: "2026-03-14T10:00:00Z", quantity: 1 },
+  { id: "l2",  type: "CUB",   name: "Cub #42",        imageUrl: "/assets/cubs/collection/42.png",    rarity: "LEGENDARY", price: "0.45", seller: "0x7f2C...8aD4", listedAt: "2026-03-13T14:30:00Z", quantity: 1 },
+  { id: "l3",  type: "CUB",   name: "Cub #100",       imageUrl: "/assets/cubs/collection/100.png",   rarity: "RARE",      price: "0.08", seller: "0xCd91...7a3B", listedAt: "2026-03-15T08:15:00Z", quantity: 1 },
+  { id: "l4",  type: "CUB",   name: "Cub #333",       imageUrl: "/assets/cubs/collection/333.png",   rarity: "EPIC",      price: "0.18", seller: "0xEf42...2bC9", listedAt: "2026-03-12T22:00:00Z", quantity: 1 },
+  { id: "l17", type: "CUB",   name: "Cub #777",       imageUrl: "/assets/cubs/collection/777.png",   rarity: "LEGENDARY", price: "0.55", seller: "0x34Bc...5dF2", listedAt: "2026-03-11T09:00:00Z", quantity: 1 },
+  { id: "l18", type: "CUB",   name: "Cub #500",       imageUrl: "/assets/cubs/collection/500.png",   rarity: "RARE",      price: "0.07", seller: "0x56Ae...1cB7", listedAt: "2026-03-14T11:30:00Z", quantity: 1 },
+  { id: "l19", type: "CUB",   name: "Cub #1234",      imageUrl: "/assets/cubs/collection/1234.png",  rarity: "UNCOMMON",  price: "0.04", seller: "0x89Df...4eA2", listedAt: "2026-03-15T07:00:00Z", quantity: 1 },
+  { id: "l20", type: "CUB",   name: "Cub #2222",      imageUrl: "/assets/cubs/collection/2222.png",  rarity: "COMMON",    price: "0.025", seller: "0xFa31...7bD5", listedAt: "2026-03-14T19:00:00Z", quantity: 1 },
+  { id: "l21", type: "CUB",   name: "Cub #15",        imageUrl: "/assets/cubs/collection/15.png",    rarity: "LEGENDARY", price: "1.20", seller: "0x7f2C...8aD4", listedAt: "2026-03-10T16:00:00Z", quantity: 1 },
+  { id: "l22", type: "CUB",   name: "Cub #1777",      imageUrl: "/assets/cubs/collection/1777.png",  rarity: "EPIC",      price: "0.15", seller: "0xAb5d...3f1E", listedAt: "2026-03-13T20:00:00Z", quantity: 1 },
+  { id: "l23", type: "CUB",   name: "Cub #3000",      imageUrl: "/assets/cubs/collection/3000.png",  rarity: "RARE",      price: "0.065", seller: "0xCd91...7a3B", listedAt: "2026-03-15T03:00:00Z", quantity: 1 },
+  { id: "l24", type: "CUB",   name: "Cub #200",       imageUrl: "/assets/cubs/collection/200.png",   rarity: "UNCOMMON",  price: "0.035", seller: "0x12aF...9cE1", listedAt: "2026-03-14T06:00:00Z", quantity: 1 },
   // Traits
   { id: "l5",  type: "TRAIT",  name: "Crown",          imageUrl: "https://placehold.co/400x400/1a1a2e/f59e0b?text=Crown",       rarity: "LEGENDARY", price: "0.08", seller: "0xCd91...7a3B", category: "HAT",         listedAt: "2026-03-14T16:00:00Z", quantity: 1 },
   { id: "l6",  type: "TRAIT",  name: "Sparkle Eyes",   imageUrl: "https://placehold.co/400x400/1a1a2e/60a5fa?text=Eyes",         rarity: "UNCOMMON",  price: "0.02", seller: "0x12aF...9cE1", category: "EYES",        listedAt: "2026-03-15T06:00:00Z", quantity: 2 },
@@ -118,11 +126,44 @@ export const MOCK_LISTINGS: MockListing[] = [
   { id: "l10", type: "TRAIT",  name: "Fire Eyes",      imageUrl: "https://placehold.co/400x400/1a1a2e/e74c3c?text=Fire",         rarity: "LEGENDARY", price: "0.15", seller: "0x34Bc...5dF2", category: "EYES",        listedAt: "2026-03-11T18:00:00Z", quantity: 1 },
   { id: "l11", type: "TRAIT",  name: "Flower Crown",   imageUrl: "https://placehold.co/400x400/1a1a2e/ec407a?text=Flower",      rarity: "RARE",      price: "0.035", seller: "0x12aF...9cE1", category: "HAT",        listedAt: "2026-03-14T08:00:00Z", quantity: 1 },
   { id: "l12", type: "TRAIT",  name: "Golden Body",    imageUrl: "https://placehold.co/400x400/1a1a2e/d4a017?text=Golden",      rarity: "EPIC",      price: "0.06", seller: "0x34Bc...5dF2", category: "BODY",        listedAt: "2026-03-13T10:00:00Z", quantity: 1 },
+  { id: "l25", type: "TRAIT",  name: "Ninja Onsie",    imageUrl: "https://placehold.co/400x400/1a1a2e/2c3e50?text=Ninja",       rarity: "EPIC",      price: "0.09", seller: "0x56Ae...1cB7", category: "OUTFIT",      listedAt: "2026-03-12T14:00:00Z", quantity: 1 },
+  { id: "l26", type: "TRAIT",  name: "Sneakers",       imageUrl: "https://placehold.co/400x400/1a1a2e/e67e22?text=Sneakers",    rarity: "COMMON",    price: "0.005", seller: "0xFa31...7bD5", category: "SHOES",      listedAt: "2026-03-15T01:00:00Z", quantity: 4 },
   // Crates
   { id: "l13", type: "CRATE",  name: "Epic Crate",     imageUrl: "https://placehold.co/400x400/1a1a2e/c084fc?text=Epic+Crate",  rarity: "EPIC",      price: "0.05", seller: "0xEf42...2bC9", listedAt: "2026-03-14T12:00:00Z", quantity: 2 },
   { id: "l14", type: "CRATE",  name: "Legendary Crate",imageUrl: "https://placehold.co/400x400/1a1a2e/f59e0b?text=Leg+Crate",   rarity: "LEGENDARY", price: "0.20", seller: "0x7f2C...8aD4", listedAt: "2026-03-13T06:00:00Z", quantity: 1 },
   { id: "l15", type: "CRATE",  name: "Rare Crate",     imageUrl: "https://placehold.co/400x400/1a1a2e/60a5fa?text=Rare+Crate",  rarity: "RARE",      price: "0.03", seller: "0xAb5d...3f1E", listedAt: "2026-03-15T04:00:00Z", quantity: 3 },
   { id: "l16", type: "CRATE",  name: "Common Crate",   imageUrl: "https://placehold.co/400x400/1a1a2e/71717a?text=Com+Crate",   rarity: "COMMON",    price: "0.01", seller: "0x12aF...9cE1", listedAt: "2026-03-14T18:00:00Z", quantity: 5 },
+];
+
+// ── Marketplace Collection Stats ───────────────────────────────────
+
+export const MOCK_COLLECTION_STATS = {
+  floorPrice: "0.025",
+  totalVolume: "12.4",
+  totalListed: 26,
+  uniqueOwners: 847,
+};
+
+// ── Marketplace Recent Activity ────────────────────────────────────
+
+export interface MockActivity {
+  id: string;
+  type: "sale" | "listing" | "offer";
+  itemName: string;
+  imageUrl: string;
+  price: string;
+  from: string;
+  to?: string;
+  timeAgo: string;
+}
+
+export const MOCK_RECENT_ACTIVITY: MockActivity[] = [
+  { id: "a1", type: "sale",    itemName: "Cub #777",      imageUrl: "/assets/cubs/collection/777.png",  price: "0.55", from: "0x34Bc...5dF2", to: "0xAb5d...3f1E", timeAgo: "2m ago" },
+  { id: "a2", type: "sale",    itemName: "Crown",          imageUrl: "https://placehold.co/40x40/1a1a2e/f59e0b?text=C", price: "0.08", from: "0xCd91...7a3B", to: "0x89Df...4eA2", timeAgo: "15m ago" },
+  { id: "a3", type: "listing", itemName: "Cub #1500",      imageUrl: "/assets/cubs/collection/1500.png", price: "0.09", from: "0x56Ae...1cB7", timeAgo: "32m ago" },
+  { id: "a4", type: "sale",    itemName: "Cub #2847",      imageUrl: "/assets/cubs/collection/2847.png", price: "0.04", from: "0xFa31...7bD5", to: "0x7f2C...8aD4", timeAgo: "1h ago" },
+  { id: "a5", type: "offer",   itemName: "Shadow Aura",    imageUrl: "https://placehold.co/40x40/1a1a2e/6c3483?text=S", price: "0.20", from: "0xEf42...2bC9", timeAgo: "2h ago" },
+  { id: "a6", type: "sale",    itemName: "Cub #3300",      imageUrl: "/assets/cubs/collection/3300.png", price: "0.03", from: "0x12aF...9cE1", to: "0x34Bc...5dF2", timeAgo: "4h ago" },
 ];
 
 // ── Crates ──────────────────────────────────────────────────────────

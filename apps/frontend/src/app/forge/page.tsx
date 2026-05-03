@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "@/components/shared/page-header";
-import { FloatingBackground } from "@/components/shared/floating-background";
 import { LayerPreview } from "@/components/forge/layer-preview";
 import { TraitPicker } from "@/components/forge/trait-picker";
 import { RarityDisplay } from "@/components/forge/rarity-display";
@@ -71,12 +70,11 @@ export default function ForgePage() {
 
   return (
     <div className="relative min-h-screen">
-      <FloatingBackground count={8} />
-
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <PageHeader
+          eyebrow="Build your own"
           title="Cub Forge"
-          description="Select a Cub from your wallet, customize its traits, then burn & forge a new NFT."
+          description="Select a Cub from your wallet, mix and match traits, then burn and forge a new one-of-one NFT."
         />
 
         <AnimatePresence mode="wait">

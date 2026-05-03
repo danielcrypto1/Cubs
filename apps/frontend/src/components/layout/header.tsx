@@ -7,7 +7,6 @@ import { NavLinks } from "./nav-links";
 import { MobileNav } from "./mobile-nav";
 import { WalletButton } from "./wallet-button";
 import { ThemeToggle } from "./theme-toggle";
-import { PawsDisplay } from "@/components/shared/paws-display";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -17,18 +16,15 @@ export function Header() {
     setScrolled(latest > 20);
   });
 
-  // Mock balance — will be replaced with real hook
-  const pawsBalance = 12_450;
-
   return (
     <motion.header
       className="sticky top-0 z-50 backdrop-blur-md transition-colors duration-300"
       animate={{
         backgroundColor: scrolled
-          ? "var(--header-scrolled-bg, oklch(1 0 0 / 0.12))"
+          ? "var(--header-scrolled-bg, oklch(0 0 0 / 0.65))"
           : "transparent",
         borderBottomColor: scrolled
-          ? "var(--header-scrolled-border, oklch(1 0 0 / 0.15))"
+          ? "var(--header-scrolled-border, oklch(1 0 0 / 0.10))"
           : "transparent",
       }}
       transition={{ duration: 0.3 }}
@@ -36,31 +32,25 @@ export function Header() {
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-display text-2xl tracking-wide cubs-gradient-text">
+          <Link href="/" className="font-display text-2xl uppercase tracking-wide cubs-gradient-text">
             CUBS
           </Link>
           <NavLinks className="hidden lg:flex" />
         </div>
 
         <div className="flex items-center gap-3">
-          {/* PAWS balance */}
-          <Link href="/staking" className="hidden sm:block">
-            <PawsDisplay balance={pawsBalance} size="sm" animated />
-          </Link>
-
           <ThemeToggle />
           <WalletButton />
           <MobileNav />
         </div>
       </div>
 
-      {/* Subtle glow line when scrolled */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 h-px"
         animate={{
           opacity: scrolled ? 1 : 0,
           background: scrolled
-            ? "linear-gradient(90deg, transparent, oklch(0.82 0.17 80 / 0.3), transparent)"
+            ? "linear-gradient(90deg, transparent, oklch(0.85 0.25 145 / 0.45), transparent)"
             : "transparent",
         }}
         transition={{ duration: 0.3 }}
