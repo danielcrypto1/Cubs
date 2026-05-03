@@ -1,25 +1,25 @@
 import { Badge } from "@/components/ui/badge";
-import type { Trait } from "@/types";
+import type { CubEquippedTrait } from "@/types";
 
 interface TraitListProps {
-  traits: Trait[];
+  equippedTraits: CubEquippedTrait[];
 }
 
-export function TraitList({ traits }: TraitListProps) {
-  if (traits.length === 0) {
+export function TraitList({ equippedTraits }: TraitListProps) {
+  if (equippedTraits.length === 0) {
     return <p className="text-sm text-muted-foreground">No traits</p>;
   }
 
   return (
     <div className="grid grid-cols-2 gap-2">
-      {traits.map((trait) => (
+      {equippedTraits.map((eq) => (
         <div
-          key={trait.id}
+          key={eq.id}
           className="rounded-lg border border-border bg-secondary/50 p-2"
         >
-          <p className="text-xs text-muted-foreground">{trait.traitType}</p>
+          <p className="text-xs text-muted-foreground">{eq.slotCategory}</p>
           <Badge variant="secondary" className="mt-1">
-            {trait.traitValue}
+            {eq.traitDefinition?.name ?? "Unknown"}
           </Badge>
         </div>
       ))}

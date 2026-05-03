@@ -9,6 +9,8 @@ const envSchema = z.object({
   PINATA_API_KEY: z.string().default(""),
   PINATA_SECRET_KEY: z.string().default(""),
   ADMIN_WALLETS: z.string().default(""),
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  BOT_SERVICE_KEY: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);

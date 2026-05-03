@@ -1,5 +1,10 @@
 import { prisma } from "../lib/prisma.js";
 
+const CUB_INCLUDE = {
+  equippedTraits: { include: { traitDefinition: true }, orderBy: { slotCategory: "asc" as const } },
+  owner: { select: { walletAddress: true, displayName: true } },
+} as const;
+
 export async function findAllCubs(options: {
   owner?: string;
   page?: number;
@@ -14,7 +19,7 @@ export async function findAllCubs(options: {
   const [cubs, total] = await Promise.all([
     prisma.cub.findMany({
       where,
-      include: { traits: { orderBy: { displayOrder: "asc" } } },
+      include: CUB_INCLUDE,
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { tokenId: "asc" },
@@ -28,10 +33,7 @@ export async function findAllCubs(options: {
 export async function findCubById(id: string) {
   return prisma.cub.findUnique({
     where: { id },
-    include: {
-      traits: { orderBy: { displayOrder: "asc" } },
-      owner: { select: { walletAddress: true, displayName: true } },
-    },
+    include: CUB_INCLUDE,
   });
 }
 
@@ -45,6 +47,8 @@ export async function createCub(data: {
 }) {
   return prisma.cub.create({
     data,
-    include: { traits: true },
+    include: {
+      equippedTraits: { include: { traitDefinition: true } },
+    },
   });
 }

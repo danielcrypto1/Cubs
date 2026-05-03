@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { springBouncy } from "@/lib/animations";
 
 const links = [
   { href: "/", label: "Home" },
+  { href: "/marketplace", label: "Explore" },
+  { href: "/drops", label: "Drops" },
+  { href: "/forge", label: "Cub Forge" },
   { href: "/mint", label: "Mint" },
-  { href: "/my-cubs", label: "My Cubs" },
-  { href: "/editor", label: "Cub Editor" },
-  { href: "/crates", label: "Crates" },
-  { href: "/marketplace", label: "Marketplace" },
-  { href: "/staking", label: "Staking" },
-  { href: "/token", label: "Token" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/roadmap", label: "Roadmap" },
+  { href: "/team", label: "Team" },
 ];
 
 export function NavLinks({ className, onNavigate }: { className?: string; onNavigate?: () => void }) {
@@ -20,21 +22,37 @@ export function NavLinks({ className, onNavigate }: { className?: string; onNavi
 
   return (
     <nav className={cn("flex items-center gap-1", className)}>
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          onClick={onNavigate}
-          className={cn(
-            "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            pathname === link.href
-              ? "bg-accent text-accent-foreground"
-              : "text-muted-foreground"
-          )}
-        >
-          {link.label}
-        </Link>
-      ))}
+      {links.map((link) => {
+        const isActive = pathname === link.href;
+        return (
+          <motion.div
+            key={link.href}
+            className="relative"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          >
+            <Link
+              href={link.href}
+              onClick={onNavigate}
+              className={cn(
+                "relative block rounded-md px-3 py-2 text-sm font-medium uppercase tracking-wide transition-colors hover:text-foreground",
+                isActive ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              {link.label}
+            </Link>
+            {isActive && (
+              <motion.div
+                layoutId="nav-active"
+                className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-primary"
+                transition={springBouncy}
+              />
+            )}
+          </motion.div>
+        );
+      })}
     </nav>
   );
 }
+
+export { links as allLinks };

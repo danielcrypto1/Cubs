@@ -2,40 +2,354 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── CUBS Design System ──────────────────────────────────────────────
+   Dark, editorial, bold. Pure black surfaces, neon-green accent for
+   hero copy, and oversized display type ripped straight out of the
+   Overall-style reference set.
+───────────────────────────────────────────────────────────────────── */
+
 @theme inline {
-  --color-background: oklch(0.145 0 0);
-  --color-foreground: oklch(0.985 0 0);
-  --color-card: oklch(0.178 0 0);
-  --color-card-foreground: oklch(0.985 0 0);
-  --color-popover: oklch(0.178 0 0);
-  --color-popover-foreground: oklch(0.985 0 0);
-  --color-primary: oklch(0.7 0.15 250);
-  --color-primary-foreground: oklch(0.145 0 0);
-  --color-secondary: oklch(0.269 0 0);
-  --color-secondary-foreground: oklch(0.985 0 0);
-  --color-muted: oklch(0.269 0 0);
-  --color-muted-foreground: oklch(0.708 0 0);
-  --color-accent: oklch(0.269 0 0);
-  --color-accent-foreground: oklch(0.985 0 0);
-  --color-destructive: oklch(0.553 0.195 27.325);
-  --color-destructive-foreground: oklch(0.985 0 0);
-  --color-border: oklch(0.369 0 0);
-  --color-input: oklch(0.269 0 0);
-  --color-ring: oklch(0.7 0.15 250);
-  --color-sidebar-background: oklch(0.178 0 0);
-  --color-sidebar-foreground: oklch(0.985 0 0);
-  --color-sidebar-primary: oklch(0.7 0.15 250);
-  --color-sidebar-primary-foreground: oklch(0.145 0 0);
-  --color-sidebar-accent: oklch(0.269 0 0);
-  --color-sidebar-accent-foreground: oklch(0.985 0 0);
-  --color-sidebar-border: oklch(0.369 0 0);
-  --color-sidebar-ring: oklch(0.7 0.15 250);
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  /* ── Base surfaces ─────────────────────────────────────────────── */
+  --color-background: oklch(0.06 0 0);          /* near-black */
+  --color-foreground: oklch(0.98 0 0);
+  --color-card: oklch(0.10 0 0);
+  --color-card-foreground: oklch(0.98 0 0);
+  --color-popover: oklch(0.10 0 0);
+  --color-popover-foreground: oklch(0.98 0 0);
+
+  /* ── Primary — Neon Green (Leonardo green) ─────────────────────── */
+  --color-primary: oklch(0.85 0.25 145);
+  --color-primary-foreground: oklch(0.10 0 0);
+
+  /* ── Secondary — Deep card grey ─────────────────────────────────── */
+  --color-secondary: oklch(0.16 0 0);
+  --color-secondary-foreground: oklch(0.95 0 0);
+
+  /* ── Muted ─────────────────────────────────────────────────────── */
+  --color-muted: oklch(0.14 0 0);
+  --color-muted-foreground: oklch(0.65 0 0);
+
+  /* ── Accent — Honey Gold (kept for chest/CTA highlights) ───────── */
+  --color-accent: oklch(0.78 0.17 75);
+  --color-accent-foreground: oklch(0.12 0 0);
+
+  /* ── Destructive ───────────────────────────────────────────────── */
+  --color-destructive: oklch(0.62 0.22 27);
+  --color-destructive-foreground: oklch(0.98 0 0);
+
+  /* ── Borders & inputs ──────────────────────────────────────────── */
+  --color-border: oklch(0.22 0 0);
+  --color-input: oklch(0.16 0 0);
+  --color-ring: oklch(0.85 0.25 145);
+
+  /* ── Sidebar ───────────────────────────────────────────────────── */
+  --color-sidebar-background: oklch(0.08 0 0);
+  --color-sidebar-foreground: oklch(0.98 0 0);
+  --color-sidebar-primary: oklch(0.85 0.25 145);
+  --color-sidebar-primary-foreground: oklch(0.10 0 0);
+  --color-sidebar-accent: oklch(0.16 0 0);
+  --color-sidebar-accent-foreground: oklch(0.95 0 0);
+  --color-sidebar-border: oklch(0.22 0 0);
+  --color-sidebar-ring: oklch(0.85 0.25 145);
+
+  /* ── CUBS brand palette ───────────────────────────────────────── */
+  --color-cubs-green: oklch(0.85 0.25 145);
+  --color-cubs-gold: oklch(0.82 0.17 80);
+  --color-cubs-pink: oklch(0.7 0.2 350);
+  --color-cubs-sky: oklch(0.72 0.15 230);
+  --color-cubs-purple: oklch(0.65 0.2 300);
+  --color-cubs-orange: oklch(0.75 0.18 55);
+
+  /* ── Rarity colours ────────────────────────────────────────────── */
+  --color-rarity-common: oklch(0.6 0 0);
+  --color-rarity-uncommon: oklch(0.72 0.18 155);
+  --color-rarity-rare: oklch(0.72 0.15 230);
+  --color-rarity-epic: oklch(0.65 0.2 300);
+  --color-rarity-legendary: oklch(0.82 0.17 80);
+
+  /* ── Radii ─────────────────────────────────────────────────────── */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  /* ── Typography scale ──────────────────────────────────────────── */
+  --text-mega: 7rem;             /* 112px — landing hero */
+  --text-mega--line-height: 0.9;
+  --text-mega--letter-spacing: -0.04em;
+
+  --text-hero: 4.25rem;          /* 68px — section hero */
+  --text-hero--line-height: 1;
+  --text-hero--letter-spacing: -0.025em;
+
+  --text-section: 2.5rem;        /* 40px — section heading */
+  --text-section--line-height: 1.05;
+  --text-section--letter-spacing: -0.015em;
+
+  --text-card-title: 1.125rem;
+  --text-card-title--line-height: 1.4;
+  --text-card-title--font-weight: 700;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.5;
+
+  /* ── Spacing scale ─────────────────────────────────────────────── */
+  --spacing-page: 2rem;
+  --spacing-section: 4rem;
+  --spacing-card: 1.5rem;
+  --spacing-grid: 1.5rem;
+
+  /* ── Layout widths ─────────────────────────────────────────────── */
+  --container-sm: 40rem;
+  --container-md: 64rem;
+  --container-lg: 80rem;
+
+  /* ── Font families ─────────────────────────────────────────────── */
+  --font-sans: var(--font-nunito), "Nunito", system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-lilita), "Lilita One", "Nunito", system-ui, sans-serif;
 }
 
+/* ── Light theme — kept simple & monochrome ─────────────────────── */
+html:not(.dark) {
+  --color-background: oklch(0.98 0 0) !important;
+  --color-foreground: oklch(0.10 0 0) !important;
+  --color-card: oklch(1 0 0) !important;
+  --color-card-foreground: oklch(0.10 0 0) !important;
+  --color-popover: oklch(1 0 0) !important;
+  --color-popover-foreground: oklch(0.10 0 0) !important;
+
+  --color-primary: oklch(0.65 0.22 145) !important;
+  --color-primary-foreground: oklch(1 0 0) !important;
+
+  --color-secondary: oklch(0.94 0 0) !important;
+  --color-secondary-foreground: oklch(0.20 0 0) !important;
+
+  --color-muted: oklch(0.94 0 0) !important;
+  --color-muted-foreground: oklch(0.45 0 0) !important;
+
+  --color-accent: oklch(0.62 0.18 75) !important;
+  --color-accent-foreground: oklch(1 0 0) !important;
+
+  --color-destructive: oklch(0.55 0.22 27) !important;
+  --color-destructive-foreground: oklch(1 0 0) !important;
+
+  --color-border: oklch(0.88 0 0) !important;
+  --color-input: oklch(0.94 0 0) !important;
+  --color-ring: oklch(0.65 0.22 145) !important;
+
+  --color-sidebar-background: oklch(0.96 0 0) !important;
+  --color-sidebar-foreground: oklch(0.10 0 0) !important;
+  --color-sidebar-primary: oklch(0.65 0.22 145) !important;
+  --color-sidebar-primary-foreground: oklch(1 0 0) !important;
+  --color-sidebar-accent: oklch(0.94 0 0) !important;
+  --color-sidebar-accent-foreground: oklch(0.20 0 0) !important;
+  --color-sidebar-border: oklch(0.88 0 0) !important;
+  --color-sidebar-ring: oklch(0.65 0.22 145) !important;
+}
+
+/* ── Header chrome ──────────────────────────────────────────────── */
+.dark {
+  --header-scrolled-bg: oklch(0 0 0 / 0.65);
+  --header-scrolled-border: oklch(1 0 0 / 0.10);
+}
+html:not(.dark) {
+  --header-scrolled-bg: oklch(1 0 0 / 0.85);
+  --header-scrolled-border: oklch(0 0 0 / 0.08);
+}
+
+/* ── Base styles ────────────────────────────────────────────────── */
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+}
+
+html:not(.dark) body {
+  background-color: oklch(0.98 0 0) !important;
+  color: oklch(0.10 0 0) !important;
+}
+
+/* ── Typography utilities ──────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.text-mega {
+  font-size: var(--text-mega);
+  line-height: var(--text-mega--line-height);
+  letter-spacing: var(--text-mega--letter-spacing);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.text-hero {
+  font-size: var(--text-hero);
+  line-height: var(--text-hero--line-height);
+  letter-spacing: var(--text-hero--letter-spacing);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.text-section {
+  font-size: var(--text-section);
+  line-height: var(--text-section--line-height);
+  letter-spacing: var(--text-section--letter-spacing);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.text-card-title {
+  font-size: var(--text-card-title);
+  line-height: var(--text-card-title--line-height);
+  font-weight: var(--text-card-title--font-weight);
+}
+
+/* Strike-through "shine" emphasis from Good text reference */
+.cubs-strike {
+  position: relative;
+  display: inline-block;
+}
+.cubs-strike::after {
+  content: "";
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  top: 52%;
+  height: 0.12em;
+  background: currentColor;
+  transform: rotate(-2deg);
+}
+
+/* Shield-shaped card from Overall style/Card.png */
+.cubs-shield {
+  border-radius: 1.5rem 1.5rem 50% 50% / 1.5rem 1.5rem 18% 18%;
+}
+
+/* ── Card hover ────────────────────────────────────────────────── */
+.cubs-card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.cubs-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: oklch(0.85 0.25 145 / 0.45);
+  box-shadow:
+    0 8px 28px oklch(0 0 0 / 0.45),
+    0 0 24px oklch(0.85 0.25 145 / 0.10);
+}
+:root:not(.dark) .cubs-card-hover:hover {
+  box-shadow:
+    0 8px 24px oklch(0 0 0 / 0.10),
+    0 0 24px oklch(0.65 0.22 145 / 0.18);
+}
+
+/* ── Glow utilities ────────────────────────────────────────────── */
+.cubs-glow {
+  box-shadow:
+    0 0 24px oklch(0.85 0.25 145 / 0.18),
+    0 0 64px oklch(0.85 0.25 145 / 0.06);
+}
+.cubs-glow-pink {
+  box-shadow:
+    0 0 24px oklch(0.7 0.2 350 / 0.20),
+    0 0 64px oklch(0.7 0.2 350 / 0.06);
+}
+.cubs-glow-sky {
+  box-shadow:
+    0 0 24px oklch(0.72 0.15 230 / 0.20),
+    0 0 64px oklch(0.72 0.15 230 / 0.06);
+}
+
+.cubs-gradient-text {
+  background: linear-gradient(135deg, oklch(0.85 0.25 145), oklch(0.78 0.20 165));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cubs-surface {
+  background-image: radial-gradient(oklch(1 0 0 / 0.025) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Leopard print decorative border for Media Kit canvas */
+.cubs-leopard-border {
+  background:
+    radial-gradient(ellipse 18px 14px at 15% 25%, #0d3d38 60%, transparent 61%),
+    radial-gradient(ellipse 14px 10px at 45% 15%, #1a6b63 60%, transparent 61%),
+    radial-gradient(ellipse 16px 12px at 75% 30%, #0d3d38 60%, transparent 61%),
+    radial-gradient(ellipse 12px 14px at 25% 65%, #1a6b63 60%, transparent 61%),
+    radial-gradient(ellipse 18px 12px at 55% 75%, #0d3d38 60%, transparent 61%),
+    radial-gradient(ellipse 14px 16px at 85% 55%, #1a6b63 60%, transparent 61%),
+    radial-gradient(ellipse 10px 12px at 35% 45%, #5eead4 40%, transparent 41%),
+    radial-gradient(ellipse 12px 10px at 65% 50%, #5eead4 40%, transparent 41%),
+    radial-gradient(ellipse 10px 8px at 90% 20%, #5eead4 40%, transparent 41%),
+    radial-gradient(ellipse 8px 10px at 10% 80%, #5eead4 40%, transparent 41%),
+    linear-gradient(135deg, #134e4a, #0f3d3a);
+}
+
+/* ── Shimmer skeleton ─────────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.cubs-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.14 0 0) 0%,
+    oklch(0.20 0 0) 40%,
+    oklch(0.14 0 0) 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+:root:not(.dark) .cubs-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.92 0 0) 0%,
+    oklch(0.96 0 0) 40%,
+    oklch(0.92 0 0) 80%
+  );
+  background-size: 200% 100%;
+}
+
+/* ── Image hover zoom ─────────────────────────────────────────── */
+.cubs-image-zoom { overflow: hidden; }
+.cubs-image-zoom img { transition: transform 0.4s ease; }
+.cubs-image-zoom:hover img { transform: scale(1.05); }
+
+/* ── Button ripple ────────────────────────────────────────────── */
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.4; }
+  100% { transform: scale(4); opacity: 0; }
+}
+.cubs-btn-ripple:active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, oklch(1 0 0 / 0.2) 0%, transparent 70%);
+  animation: ripple 0.5s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── Marquee for footer big "CUBS" letters ─────────────────────── */
+@keyframes cubs-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.cubs-marquee {
+  animation: cubs-marquee 30s linear infinite;
+}
+
+/* ── Custom cursor (hides native cursor when active) ───────────── */
+.cubs-custom-cursor,
+.cubs-custom-cursor *,
+[data-rk],
+[data-rk] *,
+[aria-modal="true"],
+[aria-modal="true"] * {
+  cursor: none !important;
 }

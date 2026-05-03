@@ -5,23 +5,36 @@ import type { TraitCategory } from "@prisma/client";
 import { uploadImageToIpfs, uploadJsonToIpfs } from "../lib/ipfs.js";
 import { generateCompositeImage } from "../lib/image-composer.js";
 import { validateTraitOwnership, decrementUserTrait } from "./user-trait-service.js";
+import { autoClaimAndUpdateSnapshot } from "./staking-service.js";
+import { renderQueue } from "../lib/queue.js";
 
 export async function getCubEditorState(cubId: string, walletAddress: string): Promise<EditorCubState | null> {
   const cub = await prisma.cub.findUnique({
     where: { id: cubId },
-    include: { traits: true, owner: true },
+    include: {
+      equippedTraits: { include: { traitDefinition: true } },
+      owner: true,
+    },
   });
 
   if (!cub) return null;
   if (cub.owner.walletAddress !== walletAddress.toLowerCase()) return null;
 
   const layers: EditorLayerConfig[] = TRAIT_LAYER_ORDER.map((category) => {
-    const existing = cub.traits.find((t) => t.traitType === category);
+    const equipped = cub.equippedTraits.find((e) => e.slotCategory === category);
+    if (equipped) {
+      return {
+        category: category as SharedTraitCategory,
+        traitDefinitionId: equipped.traitDefinitionId,
+        imageUrl: equipped.traitDefinition.imageUrl,
+        name: equipped.traitDefinition.name,
+      };
+    }
     return {
       category: category as SharedTraitCategory,
       traitDefinitionId: null,
-      imageUrl: existing ? null : null,
-      name: existing?.traitValue ?? null,
+      imageUrl: null,
+      name: null,
     };
   });
 
@@ -76,7 +89,7 @@ export async function saveEditorState(input: SaveEditorInput): Promise<EditorSav
   // 1. Validate cub ownership
   const cub = await prisma.cub.findUnique({
     where: { id: cubId },
-    include: { owner: true, traits: true },
+    include: { owner: true, equippedTraits: { include: { traitDefinition: true } } },
   });
   if (!cub || cub.owner.walletAddress !== address) {
     throw new Error("Cub not found or not owned by wallet");
@@ -117,46 +130,87 @@ export async function saveEditorState(input: SaveEditorInput): Promise<EditorSav
   };
   const metadataUri = await uploadJsonToIpfs(metadata, `cub-${cub.tokenId}-metadata`);
 
-  // 6. Database transaction: decrement traits, update cub traits, update cub
+  // 6. Calculate new version number
+  const newVersion = cub.version + 1;
+
+  // 7. Database transaction: auto-claim staking, update equipped traits, create version, update cub
   await prisma.$transaction(async (tx) => {
-    // Decrement user trait quantities
+    // Auto-claim staking PAWS before snapshot changes (trait change affects rates)
+    await autoClaimAndUpdateSnapshot(cubId, tx);
+
+    // Decrement user trait quantities for newly equipped traits
     for (const t of traitDefs) {
-      await decrementUserTrait(address, t.traitDefinitionId!);
+      // Only decrement if this is a NEW equip (not already equipped in same slot)
+      const alreadyEquipped = cub.equippedTraits.find(
+        (e) => e.slotCategory === t.category && e.traitDefinitionId === t.traitDefinitionId,
+      );
+      if (!alreadyEquipped) {
+        await decrementUserTrait(address, t.traitDefinitionId!);
+      }
     }
 
-    // Delete old cub traits
-    await tx.trait.deleteMany({ where: { cubId } });
+    // Delete old equipped traits and create new ones
+    await tx.cubEquippedTrait.deleteMany({ where: { cubId } });
 
-    // Create new cub traits
-    const newTraits = layers
-      .map((l, i) => {
-        const def = traitDefs.find((t) => t.traitDefinitionId === l.traitDefinitionId);
-        if (!def) return null;
-        return {
-          cubId,
-          traitType: l.category,
-          traitValue: def.def.name,
-          displayOrder: i,
-        };
-      })
-      .filter((t): t is NonNullable<typeof t> => t !== null);
+    const newEquippedTraits = layers
+      .filter((l) => l.traitDefinitionId !== null)
+      .map((l) => ({
+        cubId,
+        slotCategory: l.category as TraitCategory,
+        traitDefinitionId: l.traitDefinitionId!,
+      }));
 
-    if (newTraits.length > 0) {
-      await tx.trait.createMany({ data: newTraits });
+    if (newEquippedTraits.length > 0) {
+      await tx.cubEquippedTrait.createMany({ data: newEquippedTraits });
     }
 
-    // Update cub image and metadata
+    // Build trait snapshot for CubVersion
+    const traitSnapshot = traitDefs.map((t) => ({
+      slotCategory: t.category,
+      traitDefinitionId: t.traitDefinitionId!,
+      name: t.def.name,
+      imageUrl: t.def.imageUrl,
+    }));
+
+    // Create immutable CubVersion snapshot
+    await tx.cubVersion.create({
+      data: {
+        cubId,
+        version: newVersion,
+        imageUrl: imageHttpUrl,
+        metadataUri,
+        traitSnapshot,
+      },
+    });
+
+    // Update cub image, metadata, and version
     await tx.cub.update({
       where: { id: cubId },
       data: {
         imageUrl: imageHttpUrl,
         metadataUri,
+        version: newVersion,
       },
     });
   });
 
+  // 8. Enqueue render job (non-blocking, fire-and-forget for downstream processing)
+  await renderQueue.add(`render:${cubId}:v${newVersion}`, {
+    cubId,
+    version: newVersion,
+    layers: traitDefs.map((t) => ({
+      slotCategory: t.def.category as SharedTraitCategory,
+      traitDefinitionId: t.traitDefinitionId!,
+      imageUrl: t.def.imageUrl,
+    })),
+    requestedBy: address,
+  }).catch((err) => {
+    console.error("Failed to enqueue render job (non-critical):", err);
+  });
+
   return {
     cubId,
+    version: newVersion,
     imageUrl: imageHttpUrl,
     metadataUri,
   };

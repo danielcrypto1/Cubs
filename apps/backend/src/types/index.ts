@@ -8,4 +8,12 @@ declare module "fastify" {
       chainId: number;
     };
   }
+
+  interface FastifyRequest {
+    resolvedUser?: {
+      userId: string;
+      walletAddress: string;
+      source: "website" | "discord";
+    };
+  }
 }

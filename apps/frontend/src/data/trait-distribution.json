@@ -1,0 +1,821 @@
+{
+  "totalNfts": 3333,
+  "oneOfOneCount": 14,
+  "onsieCount": 50,
+  "regularCount": 3269,
+  "editableCount": 3319,
+  "distribution": {
+    "Background": {
+      "Granite": {
+        "count": 92,
+        "percentage": 2.77
+      },
+      "Orange": {
+        "count": 191,
+        "percentage": 5.75
+      },
+      "New Punk Blue": {
+        "count": 241,
+        "percentage": 7.26
+      },
+      "Origin": {
+        "count": 265,
+        "percentage": 7.98
+      },
+      "Sketch": {
+        "count": 75,
+        "percentage": 2.26
+      },
+      "Olive": {
+        "count": 117,
+        "percentage": 3.53
+      },
+      "Heavy Metal": {
+        "count": 105,
+        "percentage": 3.16
+      },
+      "Purple_Rain": {
+        "count": 29,
+        "percentage": 0.87
+      },
+      "Burnt Ash": {
+        "count": 176,
+        "percentage": 5.3
+      },
+      "Blue Skys": {
+        "count": 120,
+        "percentage": 3.62
+      },
+      "Lavander": {
+        "count": 242,
+        "percentage": 7.29
+      },
+      "Ash": {
+        "count": 106,
+        "percentage": 3.19
+      },
+      "Baby Blue": {
+        "count": 262,
+        "percentage": 7.89
+      },
+      "Yellow": {
+        "count": 238,
+        "percentage": 7.17
+      },
+      "Aquamarine": {
+        "count": 246,
+        "percentage": 7.41
+      },
+      "Denim": {
+        "count": 43,
+        "percentage": 1.3
+      },
+      "Grey": {
+        "count": 238,
+        "percentage": 7.17
+      },
+      "Purple": {
+        "count": 247,
+        "percentage": 7.44
+      },
+      "Pink": {
+        "count": 90,
+        "percentage": 2.71
+      },
+      "Wasteland": {
+        "count": 60,
+        "percentage": 1.81
+      },
+      "Slush Puppy": {
+        "count": 10,
+        "percentage": 0.3
+      },
+      "Wishful Night": {
+        "count": 43,
+        "percentage": 1.3
+      },
+      "Pink Clouds": {
+        "count": 45,
+        "percentage": 1.36
+      },
+      "Purple_Stripes": {
+        "count": 20,
+        "percentage": 0.6
+      },
+      "Bamboo": {
+        "count": 18,
+        "percentage": 0.54
+      }
+    },
+    "Body": {
+      "Ghost": {
+        "count": 42,
+        "percentage": 1.27
+      },
+      "Black_Bear": {
+        "count": 440,
+        "percentage": 13.26
+      },
+      "Panda_Bear": {
+        "count": 429,
+        "percentage": 12.93
+      },
+      "Green_Gummy": {
+        "count": 325,
+        "percentage": 9.79
+      },
+      "Sketch": {
+        "count": 97,
+        "percentage": 2.92
+      },
+      "Polar_Bear": {
+        "count": 452,
+        "percentage": 13.62
+      },
+      "Invert": {
+        "count": 24,
+        "percentage": 0.72
+      },
+      "Pink_Gummy": {
+        "count": 314,
+        "percentage": 9.46
+      },
+      "Orange_Gummy": {
+        "count": 306,
+        "percentage": 9.22
+      },
+      "Brown_Bear": {
+        "count": 427,
+        "percentage": 12.87
+      },
+      "Snow_Leopard": {
+        "count": 10,
+        "percentage": 0.3
+      },
+      "Orange_Leopard_Gummy": {
+        "count": 45,
+        "percentage": 1.36
+      },
+      "Blue_Gummy": {
+        "count": 293,
+        "percentage": 8.83
+      },
+      "Green_Leopard_Gummy": {
+        "count": 28,
+        "percentage": 0.84
+      },
+      "Pink_Leopard_Gummy": {
+        "count": 30,
+        "percentage": 0.9
+      },
+      "Blue_Leopard_Gummy": {
+        "count": 31,
+        "percentage": 0.93
+      },
+      "Leopard": {
+        "count": 18,
+        "percentage": 0.54
+      },
+      "Essence": {
+        "count": 5,
+        "percentage": 0.15
+      },
+      "Snow_Lepord": {
+        "count": 2,
+        "percentage": 0.06
+      },
+      "Lepord": {
+        "count": 1,
+        "percentage": 0.03
+      }
+    },
+    "Outfit": {
+      "None": {
+        "count": 1274,
+        "percentage": 38.39
+      },
+      "Angel_Wings": {
+        "count": 67,
+        "percentage": 2.02
+      },
+      "Black_Jumper_With_Chain": {
+        "count": 71,
+        "percentage": 2.14
+      },
+      "Grey_Jumper": {
+        "count": 27,
+        "percentage": 0.81
+      },
+      "Gold_Chain": {
+        "count": 109,
+        "percentage": 3.28
+      },
+      "Cubs_Block_T": {
+        "count": 82,
+        "percentage": 2.47
+      },
+      "Green_Track_Suit": {
+        "count": 76,
+        "percentage": 2.29
+      },
+      "Orange_Gummie_Wings": {
+        "count": 98,
+        "percentage": 2.95
+      },
+      "Gold_Chain_Cuban": {
+        "count": 56,
+        "percentage": 1.69
+      },
+      "Pink_Gem": {
+        "count": 6,
+        "percentage": 0.18
+      },
+      "Spirt_Bear": {
+        "count": 14,
+        "percentage": 0.42
+      },
+      "Ruby_Gem": {
+        "count": 38,
+        "percentage": 1.14
+      },
+      "Black_Jumper": {
+        "count": 202,
+        "percentage": 6.09
+      },
+      "Cub_Bag": {
+        "count": 116,
+        "percentage": 3.5
+      },
+      "Intuition_Top": {
+        "count": 51,
+        "percentage": 1.54
+      },
+      "Maroon_Track_Suit": {
+        "count": 80,
+        "percentage": 2.41
+      },
+      "Stud_Chain": {
+        "count": 41,
+        "percentage": 1.24
+      },
+      "Smart_Dressed_Cub": {
+        "count": 25,
+        "percentage": 0.75
+      },
+      "Blue_Gummie_Wings": {
+        "count": 103,
+        "percentage": 3.1
+      },
+      "Transparent_Top": {
+        "count": 30,
+        "percentage": 0.9
+      },
+      "Leopard_Wings": {
+        "count": 105,
+        "percentage": 3.16
+      },
+      "Black_Track_Suit": {
+        "count": 78,
+        "percentage": 2.35
+      },
+      "Dark_Side_Wings": {
+        "count": 54,
+        "percentage": 1.63
+      },
+      "Bee_More_Cub": {
+        "count": 23,
+        "percentage": 0.69
+      },
+      "Crystal_Gem": {
+        "count": 34,
+        "percentage": 1.02
+      },
+      "Blue_Suit": {
+        "count": 17,
+        "percentage": 0.51
+      },
+      "Puffer": {
+        "count": 46,
+        "percentage": 1.39
+      },
+      "Tucks": {
+        "count": 14,
+        "percentage": 0.42
+      },
+      "Pink_Gummie_Wings": {
+        "count": 95,
+        "percentage": 2.86
+      },
+      "Green_Gummie_Wings": {
+        "count": 67,
+        "percentage": 2.02
+      },
+      "Pink_Jumper": {
+        "count": 46,
+        "percentage": 1.39
+      },
+      "Green_Suit": {
+        "count": 29,
+        "percentage": 0.87
+      },
+      "Emerald_Gem": {
+        "count": 19,
+        "percentage": 0.57
+      },
+      "Hivis": {
+        "count": 22,
+        "percentage": 0.66
+      },
+      "Sapphire_Gem": {
+        "count": 8,
+        "percentage": 0.24
+      },
+      "Purple_Suit": {
+        "count": 19,
+        "percentage": 0.57
+      },
+      "Anarcist": {
+        "count": 13,
+        "percentage": 0.39
+      },
+      "Swarve": {
+        "count": 5,
+        "percentage": 0.15
+      },
+      "Cowboy": {
+        "count": 9,
+        "percentage": 0.27
+      }
+    },
+    "Hat": {
+      "Black_Beanie": {
+        "count": 282,
+        "percentage": 8.5
+      },
+      "Black_Beanie_Skull": {
+        "count": 65,
+        "percentage": 1.96
+      },
+      "Intuition_Cap": {
+        "count": 24,
+        "percentage": 0.72
+      },
+      "Bear_Bucket": {
+        "count": 105,
+        "percentage": 3.16
+      },
+      "Frog_Bucket": {
+        "count": 107,
+        "percentage": 3.22
+      },
+      "White_Bucket": {
+        "count": 112,
+        "percentage": 3.37
+      },
+      "Blue_Beanie": {
+        "count": 79,
+        "percentage": 2.38
+      },
+      "White_Cap": {
+        "count": 89,
+        "percentage": 2.68
+      },
+      "Cow_Bucket": {
+        "count": 59,
+        "percentage": 1.78
+      },
+      "Mystery": {
+        "count": 13,
+        "percentage": 0.39
+      },
+      "Helicopter": {
+        "count": 42,
+        "percentage": 1.27
+      },
+      "Conical_Hat": {
+        "count": 35,
+        "percentage": 1.05
+      },
+      "Imperial_Helmet": {
+        "count": 17,
+        "percentage": 0.51
+      },
+      "None": {
+        "count": 601,
+        "percentage": 18.11
+      },
+      "Bankman": {
+        "count": 35,
+        "percentage": 1.05
+      },
+      "Devil": {
+        "count": 38,
+        "percentage": 1.14
+      },
+      "Duck_Cap": {
+        "count": 97,
+        "percentage": 2.92
+      },
+      "Sketched_Cubs_Cap": {
+        "count": 65,
+        "percentage": 1.96
+      },
+      "Black_Bucket": {
+        "count": 257,
+        "percentage": 7.74
+      },
+      "Black_Cap": {
+        "count": 269,
+        "percentage": 8.1
+      },
+      "Black_Ski_Mask": {
+        "count": 79,
+        "percentage": 2.38
+      },
+      "Hidden_Logo": {
+        "count": 120,
+        "percentage": 3.62
+      },
+      "Banana": {
+        "count": 60,
+        "percentage": 1.81
+      },
+      "Cork_Hat": {
+        "count": 32,
+        "percentage": 0.96
+      },
+      "Red_Beanie": {
+        "count": 55,
+        "percentage": 1.66
+      },
+      "Cubs_Block_Cap": {
+        "count": 94,
+        "percentage": 2.83
+      },
+      "Sport_Cap": {
+        "count": 21,
+        "percentage": 0.63
+      },
+      "White_Ski_Mask": {
+        "count": 50,
+        "percentage": 1.51
+      },
+      "Gold_Stud": {
+        "count": 43,
+        "percentage": 1.3
+      },
+      "Warrior": {
+        "count": 18,
+        "percentage": 0.54
+      },
+      "Silver_Stud": {
+        "count": 33,
+        "percentage": 0.99
+      },
+      "Wizard": {
+        "count": 20,
+        "percentage": 0.6
+      },
+      "White_Ski_Mask_Cubs": {
+        "count": 26,
+        "percentage": 0.78
+      },
+      "Bandana_Stripes": {
+        "count": 37,
+        "percentage": 1.11
+      },
+      "Dreads": {
+        "count": 23,
+        "percentage": 0.69
+      },
+      "Clear_Cap": {
+        "count": 55,
+        "percentage": 1.66
+      },
+      "Green_Bean": {
+        "count": 37,
+        "percentage": 1.11
+      },
+      "Hyper_Ski_Mask": {
+        "count": 5,
+        "percentage": 0.15
+      },
+      "Army": {
+        "count": 21,
+        "percentage": 0.63
+      },
+      "Knife": {
+        "count": 14,
+        "percentage": 0.42
+      },
+      "Halo": {
+        "count": 28,
+        "percentage": 0.84
+      },
+      "Sketched_Cubs_Cap_Clear": {
+        "count": 7,
+        "percentage": 0.21
+      }
+    },
+    "Eyes": {
+      "Angry": {
+        "count": 456,
+        "percentage": 13.74
+      },
+      "Cute_Cubs": {
+        "count": 517,
+        "percentage": 15.58
+      },
+      "Cubs": {
+        "count": 649,
+        "percentage": 19.55
+      },
+      "See the Light": {
+        "count": 89,
+        "percentage": 2.68
+      },
+      "Incognito": {
+        "count": 24,
+        "percentage": 0.72
+      },
+      "Tv": {
+        "count": 64,
+        "percentage": 1.93
+      },
+      "Tinted-Shades": {
+        "count": 103,
+        "percentage": 3.1
+      },
+      "Anime": {
+        "count": 447,
+        "percentage": 13.47
+      },
+      "Lightning": {
+        "count": 70,
+        "percentage": 2.11
+      },
+      "Black_Out": {
+        "count": 62,
+        "percentage": 1.87
+      },
+      "Clear": {
+        "count": 100,
+        "percentage": 3.01
+      },
+      "Rainbow": {
+        "count": 94,
+        "percentage": 2.83
+      },
+      "Laser": {
+        "count": 48,
+        "percentage": 1.45
+      },
+      "Teary": {
+        "count": 80,
+        "percentage": 2.41
+      },
+      "Nerd": {
+        "count": 102,
+        "percentage": 3.07
+      },
+      "Branded_Shades": {
+        "count": 45,
+        "percentage": 1.36
+      },
+      "Cross_Eyed": {
+        "count": 85,
+        "percentage": 2.56
+      },
+      "Retro_Specs": {
+        "count": 86,
+        "percentage": 2.59
+      },
+      "Snake": {
+        "count": 87,
+        "percentage": 2.62
+      },
+      "VR": {
+        "count": 11,
+        "percentage": 0.33
+      },
+      "See the Dark": {
+        "count": 89,
+        "percentage": 2.68
+      },
+      "Sport": {
+        "count": 11,
+        "percentage": 0.33
+      }
+    },
+    "Accessories": {
+      "None": {
+        "count": 2497,
+        "percentage": 75.23
+      },
+      "Nose_Ring": {
+        "count": 234,
+        "percentage": 7.05
+      },
+      "Gold_Tail": {
+        "count": 18,
+        "percentage": 0.54
+      },
+      "Gold_Hoops": {
+        "count": 215,
+        "percentage": 6.48
+      },
+      "Gold_Stud": {
+        "count": 128,
+        "percentage": 3.86
+      },
+      "Cross_Earring": {
+        "count": 160,
+        "percentage": 4.82
+      },
+      "Silver_Tail": {
+        "count": 17,
+        "percentage": 0.51
+      }
+    },
+    "Mouth": {
+      "Cub": {
+        "count": 1353,
+        "percentage": 40.77
+      },
+      "Grin": {
+        "count": 661,
+        "percentage": 19.92
+      },
+      "Tounge": {
+        "count": 218,
+        "percentage": 6.57
+      },
+      "Smile": {
+        "count": 450,
+        "percentage": 13.56
+      },
+      "White_Growl": {
+        "count": 116,
+        "percentage": 3.5
+      },
+      "White Smile": {
+        "count": 189,
+        "percentage": 5.69
+      },
+      "Growl_Gold": {
+        "count": 82,
+        "percentage": 2.47
+      },
+      "Grill_Grin": {
+        "count": 96,
+        "percentage": 2.89
+      },
+      "Gold_Smile": {
+        "count": 91,
+        "percentage": 2.74
+      },
+      "Bubble_Gum": {
+        "count": 23,
+        "percentage": 0.69
+      },
+      "Stitch": {
+        "count": 40,
+        "percentage": 1.21
+      }
+    },
+    "Shoes": {
+      "None": {
+        "count": 2708,
+        "percentage": 81.59
+      },
+      "Off_White_White": {
+        "count": 23,
+        "percentage": 0.69
+      },
+      "Shattered_Backboard": {
+        "count": 41,
+        "percentage": 1.24
+      },
+      "University_Blue": {
+        "count": 36,
+        "percentage": 1.08
+      },
+      "T_Scotts": {
+        "count": 25,
+        "percentage": 0.75
+      },
+      "Lucky_Green": {
+        "count": 25,
+        "percentage": 0.75
+      },
+      "Bumble_Bee": {
+        "count": 39,
+        "percentage": 1.18
+      },
+      "Grape_Vine": {
+        "count": 32,
+        "percentage": 0.96
+      },
+      "White_On_White": {
+        "count": 36,
+        "percentage": 1.08
+      },
+      "DIOR": {
+        "count": 31,
+        "percentage": 0.93
+      },
+      "Royal_Toe": {
+        "count": 38,
+        "percentage": 1.14
+      },
+      "OG_Pine_Green": {
+        "count": 20,
+        "percentage": 0.6
+      },
+      "OGs": {
+        "count": 29,
+        "percentage": 0.87
+      },
+      "Off_White": {
+        "count": 43,
+        "percentage": 1.3
+      },
+      "Transparant": {
+        "count": 21,
+        "percentage": 0.63
+      },
+      "Chicargo": {
+        "count": 33,
+        "percentage": 0.99
+      },
+      "Pine_Green": {
+        "count": 24,
+        "percentage": 0.72
+      },
+      "Rookie_Of_The_Year": {
+        "count": 36,
+        "percentage": 1.08
+      },
+      "Cubs": {
+        "count": 7,
+        "percentage": 0.21
+      },
+      "Moo's": {
+        "count": 22,
+        "percentage": 0.66
+      }
+    },
+    "Onsie": {
+      "Space_Cub": {
+        "count": 9,
+        "percentage": 0.27
+      },
+      "Elephant": {
+        "count": 3,
+        "percentage": 0.09
+      },
+      "Ninja": {
+        "count": 8,
+        "percentage": 0.24
+      },
+      "Duck": {
+        "count": 3,
+        "percentage": 0.09
+      },
+      "Frog": {
+        "count": 3,
+        "percentage": 0.09
+      },
+      "Royal_Cloak": {
+        "count": 7,
+        "percentage": 0.21
+      },
+      "Ghost": {
+        "count": 5,
+        "percentage": 0.15
+      },
+      "Hazmat": {
+        "count": 6,
+        "percentage": 0.18
+      },
+      "Bee": {
+        "count": 3,
+        "percentage": 0.09
+      },
+      "Racoon": {
+        "count": 3,
+        "percentage": 0.09
+      }
+    }
+  },
+  "layerOrder": [
+    "Background",
+    "Body",
+    "Outfit",
+    "Hat",
+    "Eyes",
+    "Accessories",
+    "Mouth",
+    "Shoes"
+  ]
+}

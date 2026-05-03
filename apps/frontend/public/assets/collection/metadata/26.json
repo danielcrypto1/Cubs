@@ -1,0 +1,39 @@
+{
+  "name": "Cubs NFT #26",
+  "description": "Little paws, big adventures. Fuelled by Creative IP. Building on Hyperliquid.",
+  "image": "ipfs://path_to_your_image/26.png",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "Wasteland"
+    },
+    {
+      "trait_type": "Body",
+      "value": "Brown_Bear"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "None"
+    },
+    {
+      "trait_type": "Hat",
+      "value": "Conical_Hat"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Snake"
+    },
+    {
+      "trait_type": "Accessories",
+      "value": "None"
+    },
+    {
+      "trait_type": "Mouth",
+      "value": "Cub"
+    },
+    {
+      "trait_type": "Shoes",
+      "value": "None"
+    }
+  ]
+}

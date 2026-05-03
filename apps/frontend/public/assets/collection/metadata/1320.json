@@ -1,0 +1,39 @@
+{
+  "name": "Cubs NFT #1320",
+  "description": "Little paws, big adventures. Fuelled by Creative IP. Building on Hyperliquid.",
+  "image": "ipfs://path_to_your_image/1320.png",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "Purple_Rain"
+    },
+    {
+      "trait_type": "Body",
+      "value": "Brown_Bear"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "Pink_Gummie_Wings"
+    },
+    {
+      "trait_type": "Hat",
+      "value": "Silver_Stud"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "See the Dark"
+    },
+    {
+      "trait_type": "Accessories",
+      "value": "None"
+    },
+    {
+      "trait_type": "Mouth",
+      "value": "Smile"
+    },
+    {
+      "trait_type": "Shoes",
+      "value": "Bumble_Bee"
+    }
+  ]
+}

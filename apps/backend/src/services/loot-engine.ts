@@ -11,7 +11,7 @@ interface LootResult {
 
 async function selectRarityTier(crateDefinitionId: string): Promise<TraitRarity> {
   const entries = await prisma.lootTableEntry.findMany({
-    where: { crateDefinitionId },
+    where: { crateDefinitionId, traitRarity: { not: null } },
     orderBy: { probability: "desc" },
   });
 
@@ -26,11 +26,11 @@ async function selectRarityTier(crateDefinitionId: string): Promise<TraitRarity>
   for (const entry of entries) {
     cumulative += entry.probability;
     if (roll <= cumulative) {
-      return entry.traitRarity;
+      return entry.traitRarity!;
     }
   }
 
-  return entries[entries.length - 1].traitRarity;
+  return entries[entries.length - 1].traitRarity!;
 }
 
 export async function selectReward(crateDefinitionId: string, maxRetries = 3): Promise<LootResult> {

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
-import type { TraitDefinition, TraitCategory, TraitRarity } from "@/types";
+import { useMemo } from "react";
+import { MOCK_TRAIT_DEFINITIONS } from "@/lib/mock-data";
+import type { TraitCategory, TraitRarity } from "@/types";
 
 interface UseTraitRegistryOptions {
   category?: TraitCategory;
@@ -10,23 +10,12 @@ interface UseTraitRegistryOptions {
 }
 
 export function useTraitRegistry(options?: UseTraitRegistryOptions) {
-  const [data, setData] = useState<TraitDefinition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (options?.category) params.set("category", options.category);
-    if (options?.rarity) params.set("rarity", options.rarity);
-    const query = params.toString();
-    const path = `/api/trait-registry${query ? `?${query}` : ""}`;
-
-    api
-      .get<{ data: TraitDefinition[] }>(path)
-      .then((res) => setData(res.data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+  const data = useMemo(() => {
+    let result = MOCK_TRAIT_DEFINITIONS;
+    if (options?.category) result = result.filter((t) => t.category === options.category);
+    if (options?.rarity) result = result.filter((t) => t.rarity === options.rarity);
+    return result;
   }, [options?.category, options?.rarity]);
 
-  return { data, loading, error };
+  return { data, loading: false, error: null };
 }
